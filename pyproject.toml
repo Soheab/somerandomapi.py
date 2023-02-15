@@ -1,0 +1,67 @@
+# credits: https://github.com/Rapptz/discord.py/blob/1395d3b4954cf13e6f0eedbc356ac46fc737b6d7/pyproject.toml
+# and https://setuptools.pypa.io/en/latest/userguide/pyproject_config.html
+
+[build-system]
+requires = ["setuptools", "setuptools-scm"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "somerandomapi"
+authors = [
+    {name = "Soheab", email = ""},
+]
+description = "My package description"
+requires-python = ">=3.8"
+keywords = ["one", "two"]
+license = {file = "LICENSE"}
+classifiers = []
+dependencies = [
+    "aiohttp>=3.8.0,<4.0.0",
+]
+packages = [
+    "somerandomapi",
+    "somerandomapi._types",
+    "somerandomapi.clients",
+    "somerandomapi.models",
+    "somerandomapi.internals",
+]
+dynamic = ["version", "readme"]
+
+[project.urls]
+homepage = "https://github.com/Soheab/somerandomapi"
+documentation ="https://github.com/Soheab/somerandomapi"
+repository = "https://github.com/me/spam.git"
+changelog = "https://github.com/me/spam/blob/master/CHANGELOG.md"
+
+
+[tool.setuptools.dynamic]
+version = {attr = "somerandomapi.VERSION"}
+readme = {file = ["README"], content-type = "text/markdown"}
+
+
+[tool.black]
+line-length = 120
+
+
+[tool.isort]
+profile = "black"
+line_length = 120
+
+[tool.pyright]
+include = [
+    "somerandomapi",
+    "somerandomapi/_types",
+    "somerandomapi/clients",
+    "somerandomapi/models",
+    "somerandomapi/internals",
+]
+exclude = [
+    "**/__pycache__",
+    "build",
+    "dist",
+    "docs",
+]
+reportUnnecessaryTypeIgnoreComment = "warning"
+reportUnusedImport = "error"
+pythonVersion = "3.8"
+typeCheckingMode = "basic"
