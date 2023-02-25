@@ -1,5 +1,5 @@
 """
-Somerandomapi.py
+somerandomapi.py
 ~~~~~~~~~~~~~~~~
 A maintained Python wrapper for the Somerandomapi API.
 """
