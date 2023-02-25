@@ -1,19 +1,20 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING, Tuple, Optional
+
+from typing import Literal, Optional, TYPE_CHECKING
 
 from .. import utils as _utils
 from ..internals.endpoints import Premium as PremiumEndpoint
-from ..models.welcome.premium import WelcomePremium
 from ..models.rankcard import Rankcard
+from ..models.welcome.premium import WelcomePremium
+
 
 if TYPE_CHECKING:
+    from ..enums import WelcomeType
     from ..internals.http import HTTPClient
     from ..models.image import Image
-
     from ..types.welcome import WelcomeTextColors
-    from ..enums import WelcomeType
 
-__all__: Tuple[str, ...] = ("Premium",)
+__all__ = ("Premium",)
 
 
 class Premium:
@@ -21,6 +22,8 @@ class Premium:
 
     This class is not meant to be instantiated by the user. Instead, access it through the `premium` attribute of the `Client` class.
     """
+
+    __slots__ = ("__http",)
 
     def __init__(self, http: HTTPClient) -> None:
         self.__http: HTTPClient = http
@@ -104,13 +107,14 @@ class Premium:
         obj = _utils._handle_obj_or_args(Rankcard, obj, values).copy()
         res = await self.__http.request(endpoint, **obj.to_dict())
         new = obj.copy()
-        new._image = res
+        new._set_image(res)
         return new
 
     async def welcome_image(
         self,
         obj: Optional[WelcomePremium] = None,
         *,
+        template: Optional[Literal[1, 2, 3, 4, 5, 6, 7, 8]] = None,
         type: Optional[WelcomeType] = None,
         username: Optional[str] = None,
         avatar_url: Optional[str] = None,
@@ -123,6 +127,7 @@ class Premium:
         font: Optional[int] = None,
     ) -> WelcomePremium:
         values = (
+            ("template", template, True),
             ("type", type, True),
             ("background_url", background_url, True),
             ("avatar_url", avatar_url, True),
@@ -137,7 +142,7 @@ class Premium:
         endpoint = PremiumEndpoint.WELCOME
 
         obj = _utils._handle_obj_or_args(WelcomePremium, obj, values).copy()
-        res = await self.__http.request(endpoint, **obj.to_dict())
+        res = await self.__http._welcome_card(endpoint, obj)
         new = obj.copy()
-        new._image = res
+        new._set_image(res)
         return new

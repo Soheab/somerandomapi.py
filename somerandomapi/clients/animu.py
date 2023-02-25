@@ -1,14 +1,16 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING, Tuple
+
+from typing import TYPE_CHECKING
 
 from ..internals.endpoints import Animu as AnimuEndpoint
 from ..models.animu_quote import AnimuQuote
+
 
 if TYPE_CHECKING:
     from ..internals.http import HTTPClient
 
 
-__all__: Tuple[str, ...] = ("Animu",)
+__all__ = ("Animu",)
 
 
 class Animu:
@@ -16,6 +18,8 @@ class Animu:
 
     This class is not meant to be instantiated by the user. Instead, access it through the `animu` attribute of the `Client` class.
     """
+
+    __slots__ = ("__http",)
 
     def __init__(self, http: HTTPClient) -> None:
         self.__http: HTTPClient = http

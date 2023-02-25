@@ -1,16 +1,16 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING, Tuple
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+from typing import TYPE_CHECKING
 
+from ..internals.endpoints import Others as OthersEndpoint
 from .abc import BaseModel
 
+
 if TYPE_CHECKING:
-    from typing_extensions import Unpack
+    from ..types.others import LyricsLinks as LyricsLinksPayload
 
-    from ..types.others import Lyrics as LyricsPayload, LyricsLinks as LyricsLinksPayload
-
-__all__: Tuple[str, ...] = ("Lyrics", "LyricsLinks")
+__all__ = ("Lyrics", "LyricsLinks")
 
 
 @dataclass
@@ -27,18 +27,23 @@ class LyricsLinks(BaseModel):
 
 @dataclass
 class Lyrics(BaseModel):
+    _endpoint = OthersEndpoint.LYRICS
     title: str
     """The title of the song."""
     author: str
     """The author of the song."""
+    lyrics: str
+    """The lyrics of the song."""
 
-    _thumbnail: LyricsLinksPayload
-    _links: LyricsLinksPayload
+    _thumbnail: LyricsLinksPayload = field(repr=False)
+    _links: LyricsLinksPayload = field(repr=False)
 
     if TYPE_CHECKING:
 
         @classmethod
-        def from_dict(cls, **data: Unpack[LyricsPayload]):
+        def from_dict(
+            cls, *, title: str, author: str, lyrics: str, thumbnail: LyricsLinksPayload, links: LyricsLinksPayload
+        ):
             ...
 
     @property

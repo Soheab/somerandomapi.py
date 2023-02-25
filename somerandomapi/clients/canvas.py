@@ -1,28 +1,24 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING, Literal, Optional, Tuple, Union
+
+from typing import Literal, Optional, TYPE_CHECKING
 
 from .. import utils as _utils
-from ..enums import CanvasFilter, CanvasOverlay, CanvasBorder, CanvasCrop
+from ..enums import CanvasBorder, CanvasCrop, CanvasFilter, CanvasOverlay
 from ..internals.endpoints import (
     CanvasFilter as CanvasFilterEndpoint,
-    CanvasOverlay as CanvasOverlayEndpoint,
     CanvasMisc as CanvasMiscEndpoint,
+    CanvasOverlay as CanvasOverlayEndpoint,
 )
-from ..models.youtube_comment import YoutubeComment
-from ..models.tweet import Tweet
-from ..models.rgb import RGB
 from ..models.namecard import GenshinNamecard
+from ..models.tweet import Tweet
+from ..models.youtube_comment import YoutubeComment
+
 
 if TYPE_CHECKING:
     from ..internals.http import HTTPClient
-
-    from ..types.canvas.filter import Filters as FilterLiterals
-    from ..types.canvas.overlay import Overlays as OverlayLiterals
-    from ..types.canvas.misc import Borders as BorderLiterals, Crops as CropLiterals
-
     from ..models.image import Image
 
-__all__: Tuple[str, ...] = ("Canvas",)
+__all__ = ("Canvas",)
 
 
 class Canvas:
@@ -31,7 +27,7 @@ class Canvas:
     This class is not meant to be instantiated by the user. Instead, access it through the `canvas` attribute of the `Client` class.
     """
 
-    __slots__: Tuple[str, ...] = ("__http",)
+    __slots__ = ("__http",)
 
     def __init__(self, http: HTTPClient) -> None:
         self.__http: HTTPClient = http
@@ -75,7 +71,7 @@ class Canvas:
             CanvasFilterEndpoint if filter not in (_enum.BLUR, _enum.JPG, _enum.PIXELATE) else CanvasMiscEndpoint
         )
 
-        _endpoint = _endpoint_cls._from_enum(filter)
+        _endpoint = _endpoint_cls.from_enum(filter)
         return await self.__http.request(_endpoint, avatar=avatar)
 
     async def filter_brightness(self, avatar: str, brightness: int) -> Image:
@@ -95,7 +91,7 @@ class Canvas:
         """
         _enum = CanvasFilter
         _filter = _enum.BRIGHTNESS
-        _endpoint = CanvasFilterEndpoint._from_enum(_filter)
+        _endpoint = CanvasFilterEndpoint.from_enum(_filter)
         return await self.__http.request(_endpoint, avatar=avatar, brightness=brightness)
 
     async def filter_color(self, avatar: str, color: str) -> Image:
@@ -115,8 +111,8 @@ class Canvas:
         """
         _enum = CanvasFilter
         _filter = _enum.COLOR
-        _endpoint = CanvasFilterEndpoint._from_enum(_filter)
-        _color = _utils._check_colour_value(color)  # type: ignore
+        _endpoint = CanvasFilterEndpoint.from_enum(_filter)
+        _color = _utils._check_colour_value(color)
         return await self.__http.request(_endpoint, avatar=avatar, color=_color)
 
     async def filter_threshold(self, avatar: str, threshold: int) -> Image:
@@ -139,7 +135,7 @@ class Canvas:
 
         _enum = CanvasFilter
         _filter = _enum.THRESHOLD
-        _endpoint = CanvasFilterEndpoint._from_enum(_filter)
+        _endpoint = CanvasFilterEndpoint.from_enum(_filter)
         return await self.__http.request(_endpoint, avatar=avatar, threshold=threshold)
 
     async def overlay(self, avatar: str, overlay: CanvasOverlay) -> Image:
@@ -161,7 +157,7 @@ class Canvas:
         if not isinstance(overlay, _enum):
             raise TypeError(f"Expected CanvasOverlay, got {overlay.__class__.__name__}")
 
-        _endpoint = CanvasOverlayEndpoint._from_enum(overlay)
+        _endpoint = CanvasOverlayEndpoint.from_enum(overlay)
         return await self.__http.request(_endpoint, avatar=avatar)
 
     async def border(self, avatar: str, border: CanvasBorder) -> Image:
@@ -242,7 +238,7 @@ class Canvas:
         )
         obj = _utils._handle_obj_or_args(Tweet, obj, values).copy()
         res = await self.__http.request(CanvasMiscEndpoint.TWEET, **obj.to_dict())
-        obj._image = res
+        obj._set_image(res)
         return obj
 
     async def generate_youtube_comment(
@@ -256,7 +252,7 @@ class Canvas:
         values = (("avatar", avatar, True), ("username", username, True), ("comment", comment, True))
         obj = _utils._handle_obj_or_args(YoutubeComment, obj, values).copy()
         res = await self.__http.request(CanvasMiscEndpoint.YOUTUBE_COMMENT, **obj.to_dict())
-        obj._image = res
+        obj._set_image(res)
         return obj
 
     async def generate_genshin_namecard(
@@ -276,7 +272,7 @@ class Canvas:
         )
         obj = _utils._handle_obj_or_args(GenshinNamecard, obj, values).copy()
         res = await self.__http.request(CanvasMiscEndpoint.GENSHIN_NAMECARD, **obj.to_dict())
-        obj._image = res
+        obj._set_image(res)
         return obj
 
     async def generate_simpcard(self, avatar_url: str) -> Image:

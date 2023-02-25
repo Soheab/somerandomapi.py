@@ -1,26 +1,20 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING, Tuple
 
 from dataclasses import dataclass, field
-
-from .abc import BaseModel
+from typing import TYPE_CHECKING
 
 from ..internals.endpoints import CanvasMisc
-
-if TYPE_CHECKING:
-    from ..models.image import Image
+from .abc import BaseImageModel
 
 
-__all__: Tuple[str, ...] = ("YoutubeComment",)
+__all__ = ("YoutubeComment",)
 
 
 @dataclass
-class YoutubeComment(BaseModel):
+class YoutubeComment(BaseImageModel):
     """Represents a Youtube Comment."""
 
     _endpoint = CanvasMisc.YOUTUBE_COMMENT
-
-    _image: Image = field(init=False)
 
     username: str = field(metadata={"max_length": 25})
     """The username of the user. Max 25 characters."""
@@ -41,13 +35,5 @@ class YoutubeComment(BaseModel):
         ):
             ...
 
-    @property
-    def image(self) -> Image:
-        """The image of the youtube comment.
-
-        Returns
-        -------
-        :class:`Image`
-            The image of the youtube comment.
-        """
-        return self._image
+    def __post_init__(self):
+        self.__class__._validate_types(self, globals(), locals())

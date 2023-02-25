@@ -1,25 +1,19 @@
-from __future__ import annotations
-from typing import TYPE_CHECKING, Tuple, Optional
-
 from dataclasses import dataclass, field
+from typing import Optional, TYPE_CHECKING
 
-from ..internals.endpoints import Premium
-from .abc import BaseModel
 from .. import utils as _utils
+from ..internals.endpoints import Premium
+from .abc import BaseImageModel
 
-if TYPE_CHECKING:
-    from ..models.image import Image
 
-__all__: Tuple[str, ...] = ("Rankcard",)
+__all__ = ("Rankcard",)
 
 
 @dataclass
-class Rankcard(BaseModel):
+class Rankcard(BaseImageModel):
     """Represents a rank card."""
 
     _endpoint = Premium.RANK_CARD
-
-    _image: Image = field(init=False)
 
     username: str = field(metadata={"max_length": 32})
     """The username of the user. Max 32 characters."""
@@ -85,8 +79,6 @@ class Rankcard(BaseModel):
             ...
 
     def __post_init__(self) -> None:
-        super().__post_init__()
-
         COLOR_ERROR = (
             "Invalid {0} color. Must be a valid hex color or 'random'. Valid formats: '#000000', 0x000000, 000000"
         )
@@ -111,13 +103,4 @@ class Rankcard(BaseModel):
                 raise ValueError(COLOR_ERROR.format("xp bar"))
             self.bar_color = color
 
-    @property
-    def image(self) -> Image:
-        """The image of the tweet.
-
-        Returns
-        -------
-        :class:`Image`
-            The image of the tweet.
-        """
-        return self._image
+        self.__class__._validate_types(self, globals(), locals())

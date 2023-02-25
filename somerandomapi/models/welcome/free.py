@@ -1,27 +1,24 @@
-from __future__ import annotations
-from typing import TYPE_CHECKING, Literal, Optional, Tuple, Optional
-
 from dataclasses import dataclass, field
+from typing import Literal, Optional, TYPE_CHECKING
 
+from ...enums import WelcomeBackground, WelcomeTextColor, WelcomeType
 from ...internals.endpoints import WelcomeImages as WelcomeImagesEndpoint
-from ..abc import BaseModel
-from ...enums import WelcomeType, WelcomeBackground, WelcomeTextColor
-from ...types.welcome import WelcomeTextColors, Backgrounds
+from ...types.welcome import Backgrounds, WelcomeTextColors
+from ..abc import BaseImageModel
 
-if TYPE_CHECKING:
-    from ...models.image import Image
 
-__all__: Tuple[str, ...] = ("WelcomeFree",)
+__all__ = ("WelcomeFree",)
 
 
 @dataclass
-class WelcomeFree(BaseModel):
-    """Represents a rank card."""
+class WelcomeFree(BaseImageModel):
+    """Represents a free welcome image."""
 
     _endpoint = WelcomeImagesEndpoint.WELCOME
 
-    _image: Image = field(init=False)
+    template: Literal[1, 2, 3, 4, 5, 6, 7] = field(metadata={"range": [1, 7]})
 
+    """The template from a predefined list. Choose a number between 1 and 7."""
     type: WelcomeType
     """The type."""
     background: WelcomeBackground
@@ -30,7 +27,7 @@ class WelcomeFree(BaseModel):
     """The username of the user."""
     avatar_url: str = field(metadata={"alias_of": "avatar"})
     """The avatar URL of the user. Must be .png or .jpg."""
-    discriminator: int
+    discriminator: int = field(metadata={"length": 4})
     """The discriminator of the user."""
     server_name: str = field(metadata={"alias_of": "guildName"})
     """The server name."""
@@ -46,13 +43,17 @@ class WelcomeFree(BaseModel):
     font: Optional[int] = field(default=None, metadata={"range": [1, 10]})
     """The font from a predefined list. Choose a number between 1 and 10."""
 
+    def __post_init__(self):
+        self.__class__._validate_types(self, globals(), locals())
+
     if TYPE_CHECKING:
 
         @classmethod
         def from_dict(
             cls,
             *,
-            type: Literal["join", "leave"],
+            template: Literal[1, 2, 3, 4, 5, 6, 7],
+            type: WelcomeType,
             background: Backgrounds,
             username: str,
             avatar: str,
@@ -67,16 +68,4 @@ class WelcomeFree(BaseModel):
 
     def to_dict(self):
         res = super().to_dict()
-        res.pop("background", None)
         return res
-
-    @property
-    def image(self) -> Image:
-        """The image of the tweet.
-
-        Returns
-        -------
-        :class:`Image`
-            The image of the tweet.
-        """
-        return self._image

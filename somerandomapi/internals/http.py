@@ -1,76 +1,67 @@
 from __future__ import annotations
-from typing import (
-    Coroutine,
-    Literal,
-    Optional,
-    Tuple,
-    ClassVar,
-    Type,
-    Union,
-    Dict,
-    Any,
-    TYPE_CHECKING,
-    TypeVar,
-    overload,
-    Dict,
-    List,
-)
 
 import json
+from typing import Any, ClassVar, Coroutine, Literal, NamedTuple, Optional, overload, TYPE_CHECKING, TypeVar, Union
+from urllib.parse import quote_plus, urlencode
+
 import aiohttp
 
-
+from ..clients.animal import Animal
+from ..clients.animu import Animu
+from ..clients.canvas import Canvas
 from ..errors import *
 from ..models.image import Image
-from ..clients.animal import Animal
-from ..clients.canvas import Canvas
-from ..clients.animu import Animu
+from ..models.welcome import WelcomeFree, WelcomePremium
+
 
 if TYPE_CHECKING:
-    from .endpoints import (
-        BaseEndpoint,
-        Endpoint,
-        CanvasFilter,
-        CanvasMisc,
-        CanvasOverlay,
-        Animal as AnimalEndpoint,
-        Facts as FactsEndpoint,
-        Img as ImgEndpoint,
-        Premium as PremiumEndpoint,
-        Animu as AnimuEndpoint,
-        Others as OthersEndpoint,
-        Chatbot as ChatbotEndpoint,
-        WelcomeImages as WelcomeImagesEndpoint,
-        Pokemon as PokemonEndpoint,
-    )
-    from ..types.http import APIKeys
-    from ..types.animu import AnimuQuote as AnimuQuotePayload, Animu as AnimuPayload
+    from ..clients.chatbot import Chatbot
     from ..types.animal import Animal as AnimalPayload
-    from ..types.img import Img as ImgPayload
+    from ..types.animu import Animu as AnimuPayload, AnimuQuote as AnimuQuotePayload
+    from ..types.canvas.misc import Hex as HexPayload, RGB as RGBPayload
+    from ..types.chatbot import Chatbot as ChatbotPayload
     from ..types.facts import Fact as FactPayload
+    from ..types.img import Img as ImgPayload
     from ..types.others import (
-        Joke as JokePayload,
-        Lyrics as LyricsPayload,
-        BotToken as BotTokenPayload,
         Base64 as Base64Payload,
         Binary as BinaryPayload,
+        BotToken as BotTokenPayload,
         Dictionary as DictionaryPayload,
+        Joke as JokePayload,
+        Lyrics as LyricsPayload,
     )
-    from ..types.chatbot import Chatbot as ChatbotPayload
     from ..types.pokemon import (
+        PokeDex as PokeDexPayload,
         PokemonAbility as PokemonAbilityPayload,
         PokemonItem as PokemonItemPayload,
         PokemonMove as PokemonMovePayload,
-        PokeDex as PokeDexPayload,
     )
-    from ..types.canvas.misc import RGB as RGBPayload, Hex as HexPayload
+    from .endpoints import (
+        Animal as AnimalEndpoint,
+        Animu as AnimuEndpoint,
+        BaseEndpoint,
+        CanvasFilter,
+        CanvasMisc,
+        CanvasOverlay,
+        Chatbot as ChatbotEndpoint,
+        Endpoint,
+        Facts as FactsEndpoint,
+        Img as ImgEndpoint,
+        Others as OthersEndpoint,
+        Pokemon as PokemonEndpoint,
+        Premium as PremiumEndpoint,
+        WelcomeImages as WelcomeImagesEndpoint,
+    )
 
     T = TypeVar("T")
     Response = Coroutine[Any, Any, T]
 
 
+__all__ = ()
+
+
 # source: https://github.com/Rapptz/discord.py/blob/master/discord/http.py
-async def json_or_text(response: aiohttp.ClientResponse) -> Union[Dict[str, Any], str]:
+async def json_or_text(response: aiohttp.ClientResponse) -> Union[dict[str, Any], str]:
     text = await response.text(encoding="utf-8")
     if response.content_type == "application/json":
         return json.loads(text)
@@ -78,28 +69,63 @@ async def json_or_text(response: aiohttp.ClientResponse) -> Union[Dict[str, Any]
     return text
 
 
+class APIKey(NamedTuple):
+    tier: Literal[0, 1, 2, 3]
+    value: str
+
+
 class HTTPClient:
     BASE_URL: ClassVar[str] = "https://some-random-api.ml"
 
-    __slots__: Tuple[str, ...] = (
-        "_keys",
-        "_session",
-        "_canvas",
-        "_animu",
-        "_animal",
-    )
+    __slots__ = ("_animal", "_animu", "_canvas", "_key", "_session", "__chatbot")
 
-    def __init__(self, session: Optional[aiohttp.ClientSession] = None, keys: Optional[APIKeys] = None) -> None:
-        self._session: Optional[aiohttp.ClientSession] = session
-        self._keys: Optional[APIKeys] = keys
+    def __init__(
+        self,
+        key: Optional[Union[tuple[Literal[0, 1, 2, 3], str], APIKey]],
+        session: Optional[aiohttp.ClientSession] = None,
+    ) -> None:
+        self._key: Optional[APIKey] = None
+        if key is not None:
+            if isinstance(key, APIKey):
+                self._key = key
+            else:
+                API_KEY_ERROR = "'key' must be a tuple of length 2 (key_tier, key)"
+                if not isinstance(key, tuple) or len(key) != 2:
+                    raise TypeError(API_KEY_ERROR)
 
-        self._canvas: Canvas = Canvas(self)
-        self._animu: Animu = Animu(self)
+                if not isinstance(key[0], int) or key[0] not in (0, 1, 2, 3):
+                    raise TypeError(f"first element of 'key' must be an integer between 0 and 3, not {key[0]}")
+
+                self._key = APIKey(*key)
+
         self._animal: Animal = Animal(self)
+        self._animu: Animu = Animu(self)
+        self._canvas: Canvas = Canvas(self)
+
+        self.__chatbot: Optional[Chatbot] = None
+
+        self._session: Optional[aiohttp.ClientSession] = session
 
     async def initiate_session(self) -> None:
         if not self._session:
             self._session = aiohttp.ClientSession()
+
+    ImageEndpoints = Union[
+        "CanvasFilter",
+        "CanvasOverlay",
+        "Literal[CanvasMisc.TWEET]",
+        "Literal[CanvasMisc.YOUTUBE_COMMENT]",
+        "Literal[CanvasMisc.SIMPCARD]",
+        "Literal[CanvasMisc.COLOR_VIEWER]",
+        "Literal[CanvasMisc.GENSHIN_NAMECARD]",
+        "PremiumEndpoint",
+        "Literal[WelcomeImagesEndpoint.WELCOME]",
+    ]
+
+    # all Image
+    @overload
+    async def request(self, endpoint: ImageEndpoints, /, **parameters: Any) -> Image:
+        ...
 
     # animu
     @overload
@@ -129,12 +155,28 @@ class HTTPClient:
         ...
 
     # canvas
+
     @overload
-    async def request(self, endpoint: Union[CanvasFilter, CanvasOverlay], /, **parameters: Any) -> Image:
+    async def request(self, endpoint: CanvasOverlay, /, **parameters: Any) -> Image:
         ...
 
     @overload
-    async def request(self, endpoint: Literal[CanvasMisc.TWEET], /, **parameters: Any) -> Image:
+    async def request(self, endpoint: CanvasFilter, /, **parameters: Any) -> Image:
+        ...
+
+    @overload
+    async def request(
+        self,
+        endpoint: Literal[
+            CanvasMisc.TWEET,
+            CanvasMisc.YOUTUBE_COMMENT,
+            CanvasMisc.SIMPCARD,
+            CanvasMisc.COLOR_VIEWER,
+            CanvasMisc.GENSHIN_NAMECARD,
+        ],
+        /,
+        **parameters: Any,
+    ) -> Image:
         ...
 
     @overload
@@ -143,31 +185,6 @@ class HTTPClient:
 
     @overload
     async def request(self, endpoint: Literal[CanvasMisc.RGB], /, **parameters: Any) -> RGBPayload:
-        ...
-
-    @overload
-    async def request(self, endpoint: Literal[CanvasMisc.YOUTUBE_COMMENT], /, **parameters: Any) -> Image:
-        ...
-
-    @overload
-    async def request(self, endpoint: Literal[CanvasMisc.SIMPCARD], /, **parameters: Any) -> Image:
-        ...
-
-    @overload
-    async def request(self, endpoint: Literal[CanvasMisc.COLOR_VIEWER], /, **parameters: Any) -> Image:
-        ...
-
-    @overload
-    async def request(self, endpoint: Literal[CanvasMisc.GENSHIN_NAMECARD], /, **parameters: Any) -> Image:
-        ...
-
-    @overload
-    async def request(self, endpoint: CanvasMisc, /, **parameters: Any) -> Image:
-        ...
-
-    # premium
-    @overload
-    async def request(self, endpoint: PremiumEndpoint, /, **parameters: Any) -> Image:
         ...
 
     # others
@@ -196,17 +213,14 @@ class HTTPClient:
         ...
 
     @overload
-    async def request(self, endpoint: OthersEndpoint, /, **parameters: Any) -> Union[JokePayload, LyricsPayload, BotTokenPayload, Base64Payload, BinaryPayload, DictionaryPayload]:
+    async def request(
+        self, endpoint: OthersEndpoint, /, **parameters: Any
+    ) -> Union[JokePayload, LyricsPayload, BotTokenPayload, Base64Payload, BinaryPayload, DictionaryPayload]:
         ...
 
     # chatbot
     @overload
     async def request(self, endpoint: Literal[ChatbotEndpoint.CHATBOT], /, **parameters: Any) -> ChatbotPayload:
-        ...
-
-    # welcome
-    @overload
-    async def request(self, endpoint: Literal[WelcomeImagesEndpoint.WELCOME], /, **parameters: Any) -> Image:
         ...
 
     # pokemon
@@ -227,9 +241,21 @@ class HTTPClient:
     @overload
     async def request(self, endpoint: Literal[PokemonEndpoint.POKEDEX], /, **parameters: Any) -> PokeDexPayload:
         ...
-    
+
     @overload
-    async def request(self, endpoint: PokemonEndpoint, /, **parameters: Any) -> Union[PokeDexPayload, PokemonAbilityPayload, PokemonMovePayload, PokemonItemPayload]:
+    async def request(
+        self, endpoint: PokemonEndpoint, /, **parameters: Any
+    ) -> Union[PokeDexPayload, PokemonAbilityPayload, PokemonMovePayload, PokemonItemPayload]:
+        ...
+
+    # welcome
+    @overload
+    async def request(self, endpoint: Literal[WelcomeImagesEndpoint.WELCOME], /, **parameters: Any) -> Image:
+        ...
+
+    # premium
+    @overload
+    async def request(self, endpoint: PremiumEndpoint, /, **parameters: Any) -> Image:
         ...
 
     # org
@@ -237,47 +263,91 @@ class HTTPClient:
     async def request(self, endpoint: BaseEndpoint, /, **parameters: Any) -> Any:
         ...
 
-    async def request(self, enum: BaseEndpoint, /, **parameters: Any) -> Any:
+    async def request(self, enum: BaseEndpoint, /, *, pre_url: Optional[str] = None, **parameters: Any) -> Any:
         endpoint: Endpoint = enum.value
-        if endpoint.parameters:
-            if not parameters:
-                raise ValueError(f"Endpoint {endpoint.path} requires parameters.")
+        if not pre_url:
+            if endpoint.parameters:
+                if not parameters:
+                    raise ValueError(f"Endpoint {endpoint.path} requires parameters.")
 
-            endpoint._set_param_values(self._keys, **parameters)
+                endpoint._set_param_values(self._key, **parameters)
 
-        url = endpoint.get_constructed_url(enum)
+            url = endpoint.get_constructed_url(enum)
+            full_url = f"{self.BASE_URL}/{url}"
+        else:
+            full_url = pre_url
 
         await self.initiate_session()
         if not self._session:
             raise RuntimeError("Session is not initialized. This should never happen.")
 
-        full_url = f"{self.BASE_URL}/{url}"
-        print("requesting", full_url, parameters)
+        print("requesting", full_url)
         async with self._session.get(full_url) as response:
-            data = response
-            if response.content_type.startswith("image/"):
-                if response.status == 200:
-                    return Image(full_url, self._session)
-            else:
+            print("response", response.status, response.content_type, response.headers.get("content-type"), "end")
+            if not response.content_type.startswith("image/"):
                 data = await json_or_text(response)
+            else:
+                data = response
+
             if response.status == 200:
+                if response.content_type.startswith("image/"):
+                    return Image.construct(full_url, self)
+
                 return data
 
             elif response.status == 400:
-                raise BadRequest(data)
+                raise BadRequest(enum, data)
             elif response.status == 403:
-                raise Forbidden(data)
+                raise Forbidden(enum, data)
             elif response.status == 404:
-                raise NotFound(data)
+                raise NotFound(enum, data)
             elif response.status == 429:
-                raise RateLimited(data)
+                raise RateLimited(enum, data)
             elif response.status == 500:
-                raise InternalServerError(data)
+                raise InternalServerError(enum, data)
             else:
-                raise HTTPException(response, data)
+                raise HTTPException(enum, response, data)
+
+    async def _get_image_url(self, url: str, /) -> bytes:
+        await self.initiate_session()
+        if not self._session:
+            raise RuntimeError("Session is not initialized. This should never happen.")
+
+        async with self._session.get(url) as response:
+            if response.status == 200:
+                return await response.read()
+
+            raise ImageError(url, response.status)
+
+    async def _welcome_card(self, enum: BaseEndpoint, card: Union[WelcomeFree, WelcomePremium]) -> Image:
+        data = card.to_dict()
+        background = data.pop("background", None)
+        template = data.pop("template")
+        endpoint: Endpoint = enum.value
+        if endpoint.parameters:
+            endpoint._set_param_values(self._key, **data)
+
+        print("_welcome_card", self.BASE_URL, enum.base(), template, background, endpoint.parameters)
+        if not template:
+            raise ValueError("Template is required for welcome card.")
+
+        url = f"{self.BASE_URL}/{enum.base()}{template}"
+
+        if background is not None:
+            url += f"/{background}"
+        if endpoint.parameters:
+            params = {name: param.value for name, param in endpoint.parameters.items() if param.value is not None}
+            url += "?" + urlencode(params, quote_via=quote_plus)
+
+        print("_welcome_card url", url)
+        return await self.request(enum, pre_url=url)
 
     async def close(self) -> None:
         if self._session and not self._session.closed:
             await self._session.close()
 
-        self._session = None  # type: ignore
+        if self.__chatbot:
+            await self.__chatbot.close()
+
+        self._session = None
+        self.__chatbot = None

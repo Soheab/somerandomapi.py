@@ -1,5 +1,6 @@
 from typing import Literal
 
+
 Overlays = Literal[
     "comrade",
     "gay",

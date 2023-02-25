@@ -1,14 +1,17 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING, Literal, Union, overload, Optional, Tuple
 
 from io import BytesIO
+from typing import Literal, Optional, overload, TYPE_CHECKING, Union
+
 
 if TYPE_CHECKING:
-    from typing_extensions import Self
-    from typing import Any, Protocol
     from io import BufferedIOBase
     from os import PathLike
-    from aiohttp import ClientSession
+    from typing import Any, Protocol
+
+    from typing_extensions import Self
+
+    from ..internals.http import HTTPClient
 
     class FileLike(Protocol):
         def __call__(
@@ -20,29 +23,40 @@ if TYPE_CHECKING:
             ...
 
 
-__all__: Tuple[str, ...] = ("Image",)
+__all__ = ("Image",)
 
 
 class Image:
     """Represents a class for all image endpoints.
 
-    Attributes
+    attributes
     ----------
     url: :class:`str`
-        The URL of the image.
+        The image URL.
     """
 
-    __slots__: Tuple[str, ...] = ("_session", "url")
+    __slots__ = ("_url", "_http")
 
-    def __init__(self, url: str, session: ClientSession) -> None:
-        self.url = url
-        self._session = session
+    _url: str
+    _http: HTTPClient
+
+    @classmethod
+    def construct(cls, url: str, http: HTTPClient) -> Image:
+        self = cls.__new__(cls)
+        self._url = url
+        self._http = http
+        return self
 
     def __str__(self) -> str:
-        return self.url
+        return self._url
 
     def __repr__(self) -> str:
         return f"<Image url={self.url!r}>"
+
+    @property
+    def url(self) -> str:
+        """:class:`str`: The image URL."""
+        return self._url
 
     @overload
     async def read(self, bytesio: Literal[True] = ...) -> BytesIO:
@@ -50,6 +64,10 @@ class Image:
 
     @overload
     async def read(self, bytesio: Literal[False] = ...) -> bytes:
+        ...
+
+    @overload
+    async def read(self, bytesio: bool = ...) -> Union[bytes, BytesIO]:
         ...
 
     async def read(self, bytesio: bool = True) -> Union[bytes, BytesIO]:
@@ -65,11 +83,11 @@ class Image:
         Union[:class:`bytes`, :class:`io.BytesIO`]
             The image data.
         """
-        async with self._session.get(self.url) as response:
-            if bytesio:
-                return BytesIO(await response.read())
-            else:
-                return await response.read()
+        data = await self._http._get_image_url(self.url)
+        if not bytesio:
+            return data
+
+        return BytesIO(data)
 
     async def file(self, cls: FileLike, filename: str = "image.png", **kwargs) -> FileLike:
         """Converts the image to a file-like object.

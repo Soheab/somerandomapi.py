@@ -1,24 +1,20 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING, Any, ClassVar, Literal, Optional, Tuple, Optional
 
 from dataclasses import dataclass, field
+from typing import Literal, Optional, TYPE_CHECKING
 
-from .abc import BaseModel
 from ..internals.endpoints import CanvasMisc
-
-if TYPE_CHECKING:
-    from ..models.image import Image
+from .abc import BaseImageModel
 
 
-__all__: Tuple[str, ...] = ("Tweet",)
+__all__ = ("Tweet",)
 
 
 @dataclass
-class Tweet(BaseModel):
+class Tweet(BaseImageModel):
     """Represents a tweet."""
 
     _endpoint = CanvasMisc.TWEET
-    _image: Image = field(init=False)
 
     display_name: str = field(metadata={"max_length": 32, "alias_of": "displayname"})
     """The display name of the user. Max 32 characters."""
@@ -34,9 +30,7 @@ class Tweet(BaseModel):
     """The amount of likes the tweet is supposed to have."""
     retweets: Optional[int]
     """The amount of retweets the tweet is supposed to have."""
-    theme: Optional[Literal["light", "dim", "dark"]] = field(
-        default="light", metadata={"must_be_one_of": ["light", "dim", "dark"]}
-    )
+    theme: Optional[Literal["light", "dim", "dark"]] = "light"
     """The theme of the tweet. Defaults to "light"."""
 
     if TYPE_CHECKING:
@@ -56,13 +50,5 @@ class Tweet(BaseModel):
         ):
             ...
 
-    @property
-    def image(self) -> Image:
-        """The image of the tweet.
-
-        Returns
-        -------
-        :class:`Image`
-                The image of the tweet.
-        """
-        return self._image
+    def __post_init__(self):
+        self.__class__._validate_types(self, globals(), locals())

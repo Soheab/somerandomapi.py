@@ -1,11 +1,22 @@
-from typing import Optional, TypedDict
+from typing import Literal, TypedDict
 
 
 class WithLink(TypedDict):
     link: str
 
 
-class APIKeys(TypedDict):
-    tier_1: Optional[str]
-    tier_2: Optional[str]
-    tier_3: Optional[str]
+ValidPaths = Literal[
+    "animal/",
+    "animu/",
+    "canvas/",
+    "canvas/filter/",
+    "canvas/misc/",
+    "canvas/overlay/",
+    "facts/",
+    "img/",
+    "others/",
+    "pokemon",
+    "premium/",
+    "chatbot",
+    "welcome/img/",
+]

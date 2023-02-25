@@ -1,20 +1,20 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING, Tuple, Union
 
+from typing import TYPE_CHECKING, Union
+
+from ..enums import Animal as AnimalEnum, FactAnimal as AnimalFactsEnum, ImgAnimal as AnimalImgEnum
 from ..internals.endpoints import Animal as AnimalEndpoint, Facts as AnimalFactsEndpoint, Img as AnimalImgEndpoint
-from ..enums import FactAnimal as AnimalFactsEnum, Animal as AnimalEnum, ImgAnimal as AnimalImgEnum
 from ..models.animal_fact import AnimalImageFact
 
 
 if TYPE_CHECKING:
     from ..internals.http import HTTPClient
-
     from ..types.animal import Animals as AnimalsLiterals
     from ..types.facts import Animals as FactsAnimalsLiterals
     from ..types.img import Images as ImgAnimalsLiterals
 
 
-__all__: Tuple[str, ...] = ("Animal",)
+__all__ = ("Animal",)
 
 
 class Animal:
@@ -22,6 +22,8 @@ class Animal:
 
     This class is not meant to be instantiated by the user. Instead, access it through the `animal` attribute of the `Client` class.
     """
+
+    __slots__ = ("__http",)
 
     def __init__(self, http: HTTPClient) -> None:
         self.__http: HTTPClient = http
@@ -49,7 +51,7 @@ class Animal:
 
             _animal = AnimalEnum(animal.upper())
 
-        _endpoint: AnimalEndpoint = AnimalEndpoint._from_enum(_animal)  # type: ignore
+        _endpoint: AnimalEndpoint = AnimalEndpoint.from_enum(_animal)
         response = await self.__http.request(_endpoint)
         return AnimalImageFact(**response)
 
@@ -69,9 +71,6 @@ class Animal:
         """
         _animal: AnimalImgEnum = animal  # type: ignore
         if not isinstance(animal, AnimalImgEnum):
-            if not isinstance(animal, str):
-                raise TypeError(f"'animal' must be either an instance of `ImgAnimal` or `str`, not {type(animal)}")
-
             valid_animals = list(map(str, list(AnimalImgEnum)))
             if animal not in valid_animals:
                 raise ValueError(
@@ -80,7 +79,7 @@ class Animal:
 
             _animal = AnimalImgEnum(animal.upper())
 
-        _endpoint: AnimalImgEndpoint = AnimalImgEndpoint._from_enum(_animal)  # type: ignore
+        _endpoint: AnimalImgEndpoint = AnimalImgEndpoint.from_enum(_animal)
         response = await self.__http.request(_endpoint)
         return response["link"]
 
@@ -100,9 +99,6 @@ class Animal:
         """
         _animal: AnimalFactsEnum = animal  # type: ignore
         if not isinstance(animal, AnimalFactsEnum):
-            if not isinstance(animal, str):
-                raise TypeError(f"'animal' must be either an instance of `FactAnimal` or `str`, not {type(animal)}")
-
             valid_animals = list(map(str, list(AnimalFactsEnum)))
             if animal not in valid_animals:
                 raise ValueError(
@@ -111,6 +107,6 @@ class Animal:
 
             _animal = AnimalFactsEnum(animal.upper())
 
-        _endpoint: AnimalFactsEndpoint = AnimalFactsEndpoint._from_enum(_animal)  # type: ignore
+        _endpoint: AnimalFactsEndpoint = AnimalFactsEndpoint.from_enum(_animal)
         response = await self.__http.request(_endpoint)
         return response["fact"]

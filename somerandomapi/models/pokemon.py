@@ -1,26 +1,28 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING, List, Tuple
+
+from typing import TYPE_CHECKING
 
 
 if TYPE_CHECKING:
     from typing_extensions import Self
+
     from ..types.pokemon import (
+        PokeDex as PokeDexPayload,
+        PokeDexFamily as PokeDexFamilyPayload,
+        PokeDexSprites as PokeDexSpritesPayload,
+        PokeDexStats as PokeDexStatsPayload,
+        PokemonAbility as PokemonAbilityPayload,
+        PokemonAbilityPokemons as PokemonAbilityPokemonsPayload,
+        PokemonItem as PokemonItemPayload,
+        PokemonMove as PokemonMovePayload,
         WithName as WithNamePayload,
         WithNameID as WithNameIDPayload,
         WithNameIDAndEffects as WithNameIDAndEffectsPayload,
         WithVersion as WithVersionPayload,
         WithVersionAndDescription as WithVersionAndDescriptionPayload,
-        PokemonAbilityPokemons as PokemonAbilityPokemonsPayload,
-        PokemonAbility as PokemonAbilityPayload,
-        PokemonItem as PokemonItemPayload,
-        PokemonMove as PokemonMovePayload,
-        PokeDexStats as PokeDexStatsPayload,
-        PokeDexFamily as PokeDexFamilyPayload,
-        PokeDexSprites as PokeDexSpritesPayload,
-        PokeDex as PokeDexPayload,
     )
 
-__all__: Tuple[str, ...] = (
+__all__ = (
     "PokemonAbility",
     "PokemonItem",
     "PokemonMove",
@@ -29,14 +31,14 @@ __all__: Tuple[str, ...] = (
 
 
 class WithName:
-    __slots__: Tuple[str, ...] = ("name",)
+    __slots__ = ("name",)
 
     def __init__(self, payload: WithNamePayload) -> None:
         self.name = payload["name"]
 
 
 class WithNameID(WithName):
-    __slots__: Tuple[str, ...] = ("id",)
+    __slots__ = ("id",)
 
     def __init__(self, payload: WithNameIDPayload) -> None:
         super().__init__(payload)
@@ -44,7 +46,7 @@ class WithNameID(WithName):
 
 
 class WithNameIDAndEffects(WithNameID):
-    __slots__: Tuple[str, ...] = ("effects",)
+    __slots__ = ("effects",)
 
     def __init__(self, payload: WithNameIDAndEffectsPayload) -> None:
         super().__init__(payload)
@@ -52,14 +54,14 @@ class WithNameIDAndEffects(WithNameID):
 
 
 class WithVersion:
-    __slots__: Tuple[str, ...] = ("version",)
+    __slots__ = ("version",)
 
     def __init__(self, payload: WithVersionPayload) -> None:
         self.version = payload["version"]
 
 
 class WithVersionAndDescription(WithVersion):
-    __slots__: Tuple[str, ...] = ("description",)
+    __slots__ = ("description",)
 
     def __init__(self, payload: WithVersionAndDescriptionPayload) -> None:
         super().__init__(payload)
@@ -67,7 +69,7 @@ class WithVersionAndDescription(WithVersion):
 
 
 class PokemonAbilityPokemons:
-    __slots__: Tuple[str, ...] = ("pokemon", "hidden")
+    __slots__ = ("pokemon", "hidden")
 
     def __init__(self, payload: PokemonAbilityPokemonsPayload) -> None:
         self.pokemon = payload["pokemon"]
@@ -75,7 +77,7 @@ class PokemonAbilityPokemons:
 
 
 class PokemonAbility(WithNameIDAndEffects):
-    __slots__ = ("generation", "description", "pokemons", "descriptions", "_data")
+    __slots__ = ("generation", "description", "_data")
 
     def __init__(self, payload: PokemonAbilityPayload) -> None:
         super().__init__(payload)
@@ -88,21 +90,21 @@ class PokemonAbility(WithNameIDAndEffects):
         return cls(payload)
 
     @property
-    def pokemons(self) -> List[PokemonAbilityPokemons]:
+    def pokemons(self) -> list[PokemonAbilityPokemons]:
         return [PokemonAbilityPokemons(pokemon) for pokemon in self._data["pokemons"]]
 
     @property
-    def descriptions(self) -> List[WithVersion]:
+    def descriptions(self) -> list[WithVersion]:
         return [WithVersion(description) for description in self._data["descriptions"]]
 
 
 class PokemonItem(WithNameIDAndEffects):
-    __slots__: Tuple[str, ...] = ("cost", "attributes", "category", "sprite", "descriptions", "_data")
+    __slots__ = ("cost", "attributes", "category", "sprite", "_data")
 
     def __init__(self, payload: PokemonItemPayload) -> None:
         super().__init__(payload)
         self._data: PokemonItemPayload = payload
-        self.attributes: List[str] = payload["attributes"]
+        self.attributes: list[str] = payload["attributes"]
 
         self.cost: int = payload["cost"]
         self.category: str = payload["category"]
@@ -113,12 +115,12 @@ class PokemonItem(WithNameIDAndEffects):
         return cls(payload)
 
     @property
-    def descriptions(self) -> List[WithVersionAndDescription]:
+    def descriptions(self) -> list[WithVersionAndDescription]:
         return [WithVersionAndDescription(description) for description in self._data["descriptions"]]
 
 
 class PokemonMove(WithNameIDAndEffects):
-    __slots__: Tuple[str, ...] = (
+    __slots__ = (
         "generation",
         "type",
         "category",
@@ -131,10 +133,9 @@ class PokemonMove(WithNameIDAndEffects):
     )
 
     def __init__(self, payload: PokemonMovePayload) -> None:
-
         super().__init__(payload)
         self._data: PokemonMovePayload = payload
-        self.pokemon: List[str] = payload["pokemon"]
+        self.pokemon: list[str] = payload["pokemon"]
 
         self.generation: int = payload["generation"]
         self.type: str = payload["type"]
@@ -149,12 +150,12 @@ class PokemonMove(WithNameIDAndEffects):
         return cls(payload)
 
     @property
-    def descriptions(self) -> List[WithVersionAndDescription]:
+    def descriptions(self) -> list[WithVersionAndDescription]:
         return [WithVersionAndDescription(description) for description in self._data["descriptions"]]
 
 
 class PokeDexStats:
-    __slots__: Tuple[str, ...] = ("hp", "attack", "defense", "sp_atk", "sp_def", "speed", "total")
+    __slots__ = ("hp", "attack", "defense", "sp_atk", "sp_def", "speed", "total")
 
     def __init__(self, payload: PokeDexStatsPayload) -> None:
         self.hp: str = payload["hp"]
@@ -167,16 +168,16 @@ class PokeDexStats:
 
 
 class PokeDexFamily:
-    __slots__: Tuple[str, ...] = ("evolution_stage", "evolution_line")
+    __slots__ = ("evolution_stage", "evolution_line")
 
     def __init__(self, payload: PokeDexFamilyPayload) -> None:
-        self.evolution_line: List[str] = payload["evolutionLine"]
+        self.evolution_line: list[str] = payload["evolutionLine"]
 
         self.evolution_stage: int = payload["evolutionStage"]
 
 
 class PokeDexSprites:
-    __slots__: Tuple[str, ...] = ("normal", "animated")
+    __slots__ = ("normal", "animated")
 
     def __init__(self, payload: PokeDexSpritesPayload) -> None:
         self.normal: str = payload["normal"]
@@ -184,7 +185,7 @@ class PokeDexSprites:
 
 
 class PokeDex(WithName):
-    __slots__: Tuple[str, ...] = (
+    __slots__ = (
         "id",
         "type",
         "species",
@@ -201,11 +202,11 @@ class PokeDex(WithName):
     def __init__(self, payload: PokeDexPayload) -> None:
         super().__init__(payload)
         self._data: PokeDexPayload = payload
-        self.type: List[str] = payload["type"]
-        self.species: List[str] = payload["species"]
-        self.abilities: List[str] = payload["abilities"]
-        self.gender: List[str] = payload["gender"]
-        self.egg_groups: List[str] = payload["egg_groups"]
+        self.type: list[str] = payload["type"]
+        self.species: list[str] = payload["species"]
+        self.abilities: list[str] = payload["abilities"]
+        self.gender: list[str] = payload["gender"]
+        self.egg_groups: list[str] = payload["egg_groups"]
 
         self.id: str = payload["id"]
         self.height: str = payload["height"]

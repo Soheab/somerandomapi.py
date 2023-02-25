@@ -1,15 +1,16 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING, Tuple, Dict, Literal
 
 from dataclasses import dataclass
+from typing import Literal, TYPE_CHECKING
+
 
 if TYPE_CHECKING:
     from typing_extensions import Self
 
-__all__: Tuple[str, ...] = ("RGB",)
+__all__ = ("RGB",)
 
 
-@dataclass
+@dataclass(frozen=True)
 class RGB:
     """Represents an RGB color."""
 
@@ -21,7 +22,7 @@ class RGB:
     """The blue value of the color."""
 
     @classmethod
-    def from_dict(cls, data: Dict[Literal["r", "g", "b"], int]) -> Self:
+    def from_dict(cls, data: dict[Literal["r", "g", "b"], int]) -> Self:
         """Converts a dictionary to a RGB color.
 
         Parameters
@@ -37,6 +38,9 @@ class RGB:
         return cls(**data)
 
     @property
-    def to_tuple(self) -> tuple[int, int, int]:
+    def as_tuple(self) -> tuple[int, int, int]:
         """Returns the RGB values as a tuple."""
         return self.r, self.g, self.b
+
+    def __repr__(self) -> str:
+        return f"rgb{self.as_tuple}"

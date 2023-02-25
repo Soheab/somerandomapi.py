@@ -1,27 +1,23 @@
-from __future__ import annotations
-from typing import TYPE_CHECKING, Literal, Optional, Tuple, Optional
-
 from dataclasses import dataclass, field
+from typing import Literal, Optional, TYPE_CHECKING
 
+from ...enums import WelcomeTextColor, WelcomeType
 from ...internals.endpoints import Premium
-from ..abc import BaseModel
-from ...enums import WelcomeType, WelcomeTextColor
 from ...types.welcome import WelcomeTextColors
+from ..abc import BaseImageModel
 
-if TYPE_CHECKING:
-    from ...models.image import Image
 
-__all__: Tuple[str, ...] = ("WelcomePremium",)
+__all__ = ("WelcomePremium",)
 
 
 @dataclass
-class WelcomePremium(BaseModel):
-    """Represents a rank card."""
+class WelcomePremium(BaseImageModel):
+    """Represents a premium welcome image."""
 
     _endpoint = Premium.WELCOME
 
-    _image: Image = field(init=False)
-
+    template: Literal[1, 2, 3, 4, 5, 6, 7] = field(metadata={"range": [1, 7]})
+    """The template from a predefined list. Choose a number between 1 and 7."""
     type: WelcomeType
     """The type."""
     username: str
@@ -46,6 +42,9 @@ class WelcomePremium(BaseModel):
     font: Optional[int] = field(default=None, metadata={"range": [1, 10]})
     """The font from a predefined list. Choose a number between 1 and 10."""
 
+    def __post_init__(self):
+        self.__class__._validate_types(self, globals(), locals())
+
     if TYPE_CHECKING:
 
         @classmethod
@@ -64,14 +63,3 @@ class WelcomePremium(BaseModel):
             font: Optional[int] = None,
         ):
             ...
-
-    @property
-    def image(self) -> Image:
-        """The image of the tweet.
-
-        Returns
-        -------
-        :class:`Image`
-            The image of the tweet.
-        """
-        return self._image

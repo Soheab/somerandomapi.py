@@ -1,42 +1,40 @@
 from __future__ import annotations
-from email.charset import BASE64
-from enum import Enum
-from typing import TYPE_CHECKING, Any, Callable, ClassVar, Literal, Optional, TypeVar, Union
 
-from urllib.parse import urlencode, quote_plus
+from typing import Any, Callable, Optional, TYPE_CHECKING
+from urllib.parse import quote_plus, urlencode
+
+from ..enums import BaseEnum
 
 
 if TYPE_CHECKING:
     from typing_extensions import Self
 
-    from ..enums import BaseEnum
+    from ..internals.http import APIKey
+    from ..types.http import ValidPaths
 
-    from ..types.http import APIKeys
-
-ValidPaths = Literal[
-    "animal/",
-    "animu/",
-    "canvas/",
-    "canvas/filter/",
-    "canvas/misc/",
-    "canvas/overlay/",
-    "facts/",
-    "img/",
-    "others/",
-    "pokemon",
-    "premium/",
-    "chatbot",
-    "welcome/img/",
-]
+_TIER_ERROR = (
+    "Missing required key tier level for {path} endpoint. "
+    "Expected a tier {tier} or above key. "
+    "Either pass such key when calling the method or set it in the Client constructor."
+)
+_TIER_ERROR_PARAMETER = (
+    "Missing required key tier level for {param} param for the {path} endpoint. "
+    "Expected a tier {tier} or above key. "
+    "Either pass such key when calling the method, set it in the Client constructor or don't pass the parameter."
+)
 
 
-class BaseEndpoint(Enum):
+class BaseEndpoint(BaseEnum):
     @classmethod
-    def base(cls):
+    def ratelimit(cls) -> tuple[int, int]:
         raise NotImplementedError
 
     @classmethod
-    def _from_enum(cls, enum: BaseEnum) -> Self:
+    def base(cls) -> ValidPaths:
+        raise NotImplementedError
+
+    @classmethod
+    def from_enum(cls, enum: BaseEnum) -> Self:
         try:
             val = enum.value.replace("-", "_").upper()
             return getattr(cls, val)
@@ -45,17 +43,51 @@ class BaseEndpoint(Enum):
 
 
 class Parameter:
-    __slots__ = ("required", "extra", "required_minimum_tier_key", "_name", "_value")
+    __slots__ = ("required", "extra", "key_tier", "is_key_parameter", "_key_value", "_name", "_value")
 
     def __init__(
-        self, required: bool = True, extra: Optional[str] = None, required_minimum_tier_key: Optional[int] = None
+        self,
+        required: bool = True,
+        extra: Optional[str] = None,
+        key_tier: Optional[int] = None,
+        is_key_parameter: bool = False,
     ) -> None:
         self.required: bool = required
         self.extra: Optional[str] = extra
-        self.required_minimum_tier_key: Optional[int] = required_minimum_tier_key  # None means no tier required
+        self.key_tier: Optional[int] = key_tier  # None means no tier required
+        self.is_key_parameter: bool = is_key_parameter
 
         self._name: Optional[str] = None  # filled in with values
         self._value: Optional[Any] = None
+
+        self._key_value: Optional[tuple[int, str]] = None
+
+    def _validate_key(
+        self,
+        client_key: Optional[APIKey],
+        endpoint: Endpoint,
+        key_value: Optional[str],
+    ) -> None:
+        if not client_key and not key_value:
+            raise TypeError(
+                f"Missing required key for {endpoint.path} endpoint. "
+                "Either pass a key when calling the method or set it in the Client constructor."
+            )
+
+        # can't check tier if passed as a parameter
+        if not client_key and key_value:
+            self._key_value = (0, key_value)
+            self.value = key_value
+            return
+
+        if client_key:
+            if self.key_tier:
+                # check if client_key.tier is not 0 and is not less than self.key_tier
+                if client_key.tier and client_key.tier < self.key_tier:
+                    raise TypeError(_TIER_ERROR.format(path=endpoint.path, tier=self.key_tier))
+            self._key_value = (client_key.tier, client_key.value)
+            self.value = client_key.value
+            return
 
     @property
     def value(self) -> Any:
@@ -64,82 +96,6 @@ class Parameter:
     @value.setter
     def value(self, value: Any) -> None:
         self._value = value
-
-
-class KeyParameter(Parameter):
-    __slots__ = ("_minimum_tier",)
-
-    def __init__(self, tier: Literal[0, 1, 2, 3], **kwargs: Any) -> None:
-        super().__init__(**kwargs)
-        self._minimum_tier: Literal[0, 1, 2, 3] = tier
-        # 0 means no tier required
-
-    @classmethod
-    def _validate_key_per_param(
-        cls,
-        keys: Optional[APIKeys],
-        endpoint: Endpoint,
-        param: Parameter,
-        values: dict[str, Any],
-    ) -> Optional[str]:
-        param_value = values.get(param._name)  # type: ignore
-        key_value = values.get("key")  # it's a key parameter so it's always called key
-        # no way to check which tier the key is
-        if key_value:
-            return param_value
-
-        MISSING_KEYS_ERROR = (
-            f"Missing required key tier level for parameter {param._name} for {endpoint.path} endpoint. "
-            f"Expected a tier {param.required_minimum_tier_key} or above key. "
-            "Either pass a key when calling the method or set it in the Client constructor."
-        )
-        # no need to validate if not required
-        if not param.required and not param_value:
-            return param_value
-
-        if not keys:
-            raise TypeError(MISSING_KEYS_ERROR)
-
-        int_tiers = [int(tier[5:]) for tier in keys.keys()]
-        if param.required_minimum_tier_key not in int_tiers:
-            raise TypeError(MISSING_KEYS_ERROR)
-
-        for key, value in keys.items():
-            if int(key[5:]) == param.required_minimum_tier_key:
-                return param_value
-
-        raise TypeError(MISSING_KEYS_ERROR)
-
-    def _validate(self, endpoint: Endpoint, value: Any, keys: Optional[APIKeys]) -> str:
-        MISSING_KEYS_ERROR = (
-            f"Missing required key for {endpoint.path} endpoint. "
-            f"Expected a tier {self._minimum_tier} or above key. "
-            "Either pass a key when calling the method or set it in the Client constructor."
-        )
-        # no need to validate if not required
-        if not self.required or self._minimum_tier == 0:
-            return value
-
-        if not keys and not value:
-            raise TypeError(MISSING_KEYS_ERROR)
-
-        # no way to check which tier the key is
-        if value:
-            return value
-
-        # bail early if no keys
-        if not keys:
-            raise TypeError(MISSING_KEYS_ERROR)
-
-        int_tiers = [int(tier[5:]) for tier in keys.keys()]
-        if self._minimum_tier not in int_tiers:
-            raise TypeError(MISSING_KEYS_ERROR)
-
-        for key, value in keys.items():
-            if int(key[5:]) >= self._minimum_tier:
-                return value
-
-        raise TypeError(MISSING_KEYS_ERROR)
 
 
 class Endpoint:
@@ -151,37 +107,38 @@ class Endpoint:
         **parameters: Parameter,
     ) -> None:
         self.path: str = path
-        self.parameters: dict[str, Union[KeyParameter, Parameter]] = parameters
+        self.parameters: dict[str, Parameter] = parameters
         self.__set_param_names()
 
     def __set_param_names(self) -> None:
         for name, param in self.parameters.items():
             param._name = name
 
-    def _set_param_values(self, _keys: Optional[APIKeys] = None, **values: Any) -> Self:
+    def _set_param_values(self, _key: Optional[APIKey] = None, **values: Any) -> Self:
         # new class to avoid mutating the original
         cls = self.__class__(self.path, **self.parameters)
-        for name, param in cls.parameters.items():
-            print("params loop", name, param, values)
+        params = cls.parameters.copy()
+        if key_param := params.get("key"):
+            key_param._validate_key(_key, cls, values.get("key"))
+
+        for name, param in params.items():
+            # print("params loop", name, param, values, _key)
+            if param.is_key_parameter:
+                continue
 
             if not param.required and name not in values:
                 continue
+
             if param.required and name not in values:
-                if name == "key":
-                    param.value = param._validate(self, values.get(name), _keys)  # type: ignore
-                    continue
-
                 raise TypeError(f"Missing required parameter {name}")
-            elif param.required_minimum_tier_key is not None:
-                key_param = cls.parameters.get("key")
-                if key_param is None:
-                    raise TypeError(f"Missing required parameter key for {name}")
 
-                param.value = KeyParameter._validate_key_per_param(_keys, self, param, values)  # type: ignore
-            elif isinstance(param, KeyParameter):
-                param.value = param._validate(self, values.get(name), _keys)
-            else:
-                param.value = values[name]
+            if param.key_tier:
+                if key_param and key_param._key_value:
+                    tier = key_param._key_value[0]
+                    if tier and tier < param.key_tier:
+                        raise TypeError(_TIER_ERROR_PARAMETER.format(param=name, path=cls.path, tier=param.key_tier))
+
+            param.value = values[name]
 
         return cls
 
@@ -322,17 +279,6 @@ class CanvasOverlay(BaseCanvas):
     WASTED = EndpointWithAvatarParam("wasted")
 
 
-"""
-class BaseAnimals(BaseEndpoint):
-    BIRD = Endpoint("bird")
-    CAT = Endpoint("cat")
-    DOG = Endpoint("dog")
-    FOX = Endpoint("fox")
-    KOALA = Endpoint("koala")
-    PANDA = Endpoint("panda")
-"""
-
-
 class Facts(BaseEndpoint):
     @classmethod
     def base(cls):
@@ -423,7 +369,7 @@ class Premium(BaseEndpoint):
         "amongus",
         avatar=Parameter(extra="use png or jpg"),
         username=Parameter(extra="maximum 30 characters"),
-        key=KeyParameter(tier=1, extra="At least tier 1"),
+        key=Parameter(key_tier=1, is_key_parameter=True, extra="At least tier 1"),
         cusotom=Parameter(required=False, extra="Custom text rather than ejecting the user"),
     )
     PETPET = EndpointWithAvatarParam("petpet")
@@ -435,11 +381,9 @@ class Premium(BaseEndpoint):
         level=Parameter(),
         cxp=Parameter(extra="Current XP"),
         nxp=Parameter(extra="Needed XP"),
-        key=KeyParameter(tier=1),  # assuming tier 1 is the minimum
-        bg=Parameter(required=False, extra="Custom background url, requires tier 2 key", required_minimum_tier_key=2),
-        cbg=Parameter(
-            required=False, extra="Custom background color, requires tier 1 key", required_minimum_tier_key=1
-        ),
+        key=Parameter(key_tier=1, is_key_parameter=True),  # assuming tier 1 is the minimum
+        bg=Parameter(required=False, extra="Custom background url, requires tier 2 key", key_tier=2),
+        cbg=Parameter(required=False, extra="Custom background color, requires tier 1 key", key_tier=1),
         ctext=Parameter(required=False, extra="Text color"),
         ccxp=Parameter(required=False, extra="Current XP color"),
         cbar=Parameter(required=False, extra="XP bar color"),
@@ -453,10 +397,12 @@ class Premium(BaseEndpoint):
         guildName=Parameter(),
         memberCount=Parameter(),
         textcolor=Parameter(extra="red, orange, yellow, green, blue, indigo, purple, pink, black, or white"),
-        key=KeyParameter(
-            tier=2, extra="Tier 2 for this endpoint, use the free endpoint if you do not have a tier 2 key"
+        key=Parameter(
+            key_tier=2,
+            is_key_parameter=True,
+            extra="Tier 2 for this endpoint, use the free endpoint if you do not have a tier 2 key",
         ),
-        bg=Parameter(required=False, extra="Custom background url, requires tier 2 key"),
+        bg=Parameter(required=False, extra="Custom background url, requires tier 2 key", key_tier=2),
         font=Parameter(
             required=False, extra="Choose a custom font from our predetermined list, use a number from 1-10"
         ),
@@ -466,12 +412,15 @@ class Premium(BaseEndpoint):
 class Chatbot(BaseEndpoint):
     @classmethod
     def base(cls):
-        return "chatbot"
+        return ""
 
     CHATBOT = Endpoint(
         "chatbot",
         message=Parameter(extra="Message that will be sent to the chatbot"),
-        key=KeyParameter(tier=1),  # assuming tier 1 is the minimum
+        key=Parameter(
+            key_tier=1,
+            is_key_parameter=True,
+        ),  # assuming tier 1 is the minimum
     )
 
 
@@ -481,7 +430,7 @@ class WelcomeImages(BaseEndpoint):
         return "welcome/img/"
 
     WELCOME = Endpoint(
-        "welcome",
+        "",
         type=Parameter(),
         username=Parameter(),
         avatar=Parameter(extra="use png or jpg"),
@@ -489,7 +438,7 @@ class WelcomeImages(BaseEndpoint):
         guildName=Parameter(),
         memberCount=Parameter(),
         textcolor=Parameter(extra="red, orange, yellow, green, blue, indigo, purple, pink, black, or white"),
-        key=KeyParameter(tier=0, extra="requires a key but does not need to be active"),
+        key=Parameter(key_tier=0, is_key_parameter=True, extra="requires a key but does not need to be active"),
         font=Parameter(
             required=False, extra="Choose a custom font from our predetermined list, use a number from 1-10"
         ),

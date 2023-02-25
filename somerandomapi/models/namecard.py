@@ -1,23 +1,18 @@
-from __future__ import annotations
-from typing import TYPE_CHECKING, Tuple, Optional, Optional
-
-from dataclasses import dataclass, field
+from dataclasses import dataclass
+from typing import Optional, TYPE_CHECKING
 
 from ..internals.endpoints import CanvasMisc
-from .abc import BaseModel
+from .abc import BaseImageModel
 
-if TYPE_CHECKING:
-    from ..models.image import Image
 
-__all__: Tuple[str, ...] = ("GenshinNamecard",)
+__all__ = ("GenshinNamecard",)
 
 
 @dataclass
-class GenshinNamecard(BaseModel):
-    """Represents a tweet."""
+class GenshinNamecard(BaseImageModel):
+    """Represents a genshin namecard."""
 
     _endpoint = CanvasMisc.GENSHIN_NAMECARD
-    _image: Image = field(init=False)
 
     avatar: str
     """The avatar URL of the user. Must be .png or .jpg."""
@@ -28,13 +23,18 @@ class GenshinNamecard(BaseModel):
     description: Optional[str]
     """The description"""
 
-    @property
-    def image(self) -> Image:
-        """The image of the namecard.
+    if TYPE_CHECKING:
 
-        Returns
-        -------
-        :class:`Image`
-            The image of the namecard.
-        """
-        return self._image
+        @classmethod
+        def from_dict(
+            cls,
+            *,
+            avatar: str,
+            birthday: str,
+            username: str,
+            description: Optional[str],
+        ):
+            ...
+
+    def __post_init__(self):
+        self.__class__._validate_types(self, globals(), locals())

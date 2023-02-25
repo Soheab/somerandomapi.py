@@ -1,8 +1,7 @@
-from typing import Tuple
 from enum import Enum
 
 
-__all__: Tuple[str, ...] = (
+__all__ = (
     "Animal",
     "ImgAnimal",
     "FactAnimal",

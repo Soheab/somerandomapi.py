@@ -1,8 +1,7 @@
-from typing import Tuple
-
 from dataclasses import dataclass
 
-__all__: Tuple[str, ...] = ("AnimalImageFact",)
+
+__all__ = ("AnimalImageFact",)
 
 
 @dataclass(frozen=True)

@@ -1,11 +1,15 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING, Any, Tuple
+
+from typing import Any, Optional, TYPE_CHECKING
+
 
 if TYPE_CHECKING:
     from aiohttp import ClientResponse
 
+    from .internals.endpoints import BaseEndpoint, Endpoint
 
-__all__: Tuple[str, ...] = (
+
+__all__ = (
     "SomeRandomApiException",
     "BadRequest",
     "NotFound",
@@ -13,12 +17,14 @@ __all__: Tuple[str, ...] = (
     "Forbidden",
     "HTTPException",
     "RateLimited",
+    "ImageError",
 )
 
 
 class SomeRandomApiException(Exception):
-    def __init__(self, data: Any, /):
+    def __init__(self, enum: BaseEndpoint, data: Any, message: Optional[str] = None, /):
         self.data: Any = data
+        self.endpoint: Endpoint = enum.value
 
         self.message = f"{str(data)}"
         if isinstance(data, dict):
@@ -33,7 +39,9 @@ class SomeRandomApiException(Exception):
                 self.code = 0
 
             self.message += f" (Code: {self.code})"
-        super().__init__(self.message)
+
+        print("error cALLING", self.message, enum, self.endpoint, self.endpoint.path, enum.base())
+        super().__init__(f"While requesting /{self.endpoint.path or enum.base()}: {self.message}")
 
 
 class BadRequest(SomeRandomApiException):
@@ -41,11 +49,13 @@ class BadRequest(SomeRandomApiException):
 
 
 class NotFound(SomeRandomApiException):
-    pass
+    def __init__(self, enum: BaseEndpoint, data: Any, /):
+        Exception.__init__(self, f"Could not find {enum.base()}{enum.value.endpoint.path}.")
 
 
 class InternalServerError(SomeRandomApiException):
-    pass
+    def __init__(self, enum: BaseEndpoint, data: Any, /):
+        Exception.__init__(self, f"Internal Server Error while requesting {enum.base()}{enum.value.path}.")
 
 
 class Forbidden(SomeRandomApiException):
@@ -62,7 +72,7 @@ class HTTPException(SomeRandomApiException):
     message: str
     code: int
 
-    def __init__(self, response: ClientResponse, data: Any, /):
+    def __init__(self, enum: BaseEndpoint, response: ClientResponse, data: Any, /):
         self.response = response
         self.data = data
         if isinstance(data, dict):
@@ -78,4 +88,11 @@ class HTTPException(SomeRandomApiException):
             self.message = str(data)
             self.code = response.status
 
-        super().__init__(self.data)
+        super().__init__(enum, data)
+
+
+class ImageError(SomeRandomApiException):
+    def __init__(self, url: str, status: int, /):
+        self.url: str = url
+        self.status: int = status
+        Exception.__init__(self, f"Could not get image from {url} (code: {status})")

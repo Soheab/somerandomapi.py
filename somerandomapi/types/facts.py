@@ -1,5 +1,6 @@
 from typing import Literal, TypedDict
 
+
 Animals = Literal[
     "bird",
     "cat",

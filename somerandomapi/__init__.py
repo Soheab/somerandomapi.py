@@ -1,3 +1,13 @@
-from .clients.client import Client
+"""
+Somerandomapi.py
+~~~~~~~~~~~~~~~~
+A maintained Python wrapper for the Somerandomapi API.
+"""
 
+from .clients.client import *
 from .models import *
+
+
+__version__ = "0.0.1"
+__author__ = "Soheab"
+__license__ = "MPL-2.0"

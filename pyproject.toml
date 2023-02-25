@@ -8,49 +8,62 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "somerandomapi"
 authors = [
-    {name = "Soheab", email = ""},
+    {name = "Soheab_"},
 ]
-description = "My package description"
-requires-python = ">=3.8"
-keywords = ["one", "two"]
+requires-python = ">=3.9"
+keywords = [
+    "some-random-api",
+    "api",
+    "somerandomapi",
+    "random",
+    "images",
+    "fun",
+    "discord",
+    "discord.py",
+    "generation",
+    "rankcard",
+    "canvas",
+    "welcome",
+    "free",
+    "open-source",
+    "asyncio",
+    "aiohttp",
+    "async",
+    "wrapper",
+]
 license = {file = "LICENSE"}
-classifiers = []
 dependencies = [
     "aiohttp>=3.8.0,<4.0.0",
 ]
+dynamic = ["version", "readme", "description"]
+
+[tool.setuptools]
 packages = [
     "somerandomapi",
-    "somerandomapi._types",
     "somerandomapi.clients",
-    "somerandomapi.models",
     "somerandomapi.internals",
+    "somerandomapi.models",
+    "somerandomapi.models.welcome",
+    "somerandomapi.types",
+    "somerandomapi.types.canvas",
 ]
-dynamic = ["version", "readme"]
 
 [project.urls]
 homepage = "https://github.com/Soheab/somerandomapi"
 documentation ="https://github.com/Soheab/somerandomapi"
-repository = "https://github.com/me/spam.git"
-changelog = "https://github.com/me/spam/blob/master/CHANGELOG.md"
+repository = "https://github.com/Soheab/somerandomapi.git"
+changelog = "https://github.com/Soheab/somerandomapi/blob/master/CHANGELOG.md"
 
 
 [tool.setuptools.dynamic]
-version = {attr = "somerandomapi.VERSION"}
+version = {attr = "somerandomapi.__version__"}
+description = {attr = "somerandomapi.__doc__"}
 readme = {file = ["README"], content-type = "text/markdown"}
-
-
-[tool.black]
-line-length = 120
-
-
-[tool.isort]
-profile = "black"
-line_length = 120
 
 [tool.pyright]
 include = [
     "somerandomapi",
-    "somerandomapi/_types",
+    "somerandomapi/types",
     "somerandomapi/clients",
     "somerandomapi/models",
     "somerandomapi/internals",
@@ -63,5 +76,35 @@ exclude = [
 ]
 reportUnnecessaryTypeIgnoreComment = "warning"
 reportUnusedImport = "error"
-pythonVersion = "3.8"
+pythonVersion = "3.9"
 typeCheckingMode = "basic"
+reportDuplicateImport = "warning"
+reportDeprecated = "warning"
+
+[tool.coverage.run]
+omit = [
+    "discord/types/*",
+    "*/_types.py",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "@overload"
+]
+
+[tool.isort]
+profile = "black"
+combine_as_imports = true
+combine_star = true
+line_length = 120
+py_version=39
+multi_line_output=8
+balanced_wrapping=true
+lines_after_imports=2
+include_trailing_comma=true
+force_alphabetical_sort_within_sections=true
+remove_redundant_aliases=true
+
+[tool.black]
+line-length = 120

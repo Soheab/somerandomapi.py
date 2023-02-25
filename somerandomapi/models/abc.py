@@ -1,39 +1,71 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING, Any, ClassVar, Dict, Type
 
-from dataclasses import dataclass
 from copy import deepcopy
+from dataclasses import dataclass, Field, field, fields, MISSING
+from typing import Any, ClassVar, Type, TYPE_CHECKING
+
+from somerandomapi.models.image import Image
 
 from .. import utils as _utils
 from ..enums import BaseEnum
+
 
 if TYPE_CHECKING:
     from typing_extensions import Self
 
     from ..internals.endpoints import BaseEndpoint
 
+__all__ = ()
+
 
 @dataclass
 class BaseModel:
     _endpoint: ClassVar[BaseEndpoint]
 
-    def __post_init__(self) -> None:
-        for name, field in self.__dataclass_fields__.items():
-            attr_value = getattr(self, name)
-            if max_length := field.metadata.get("max_length"):
-                if len(attr_value) > max_length:
+    def _validate_types(self, lcs: dict[str, Any], glbs: dict[str, Any]) -> None:
+        print("ACTUAL VALIDATION", self.__class__.__name__, self, self.__annotations__)
+        print("FIELDS", self.__dataclass_fields__.keys())
+
+        # issubclass throws a TypeError if the first argument is not a class
+        def is_enum(field: Field):
+            try:
+                return issubclass(field.type, BaseEnum)
+            except TypeError:
+                return False
+
+        for field in fields(self):
+            print("FIELD", field.name, field.type, field.metadata)
+            name = field.name
+            attr_value = getattr(self, name, None)
+
+            print("[os]", name, field.type, field, attr_value, is_enum(field))
+
+            if not attr_value or str(field.type).startswith("ClassVar["):
+                print("continue", name, field.type, field, attr_value)
+                continue
+            if min_length := field.metadata.get("min_length"):
+                if len(str(attr_value)) < min_length:
+                    raise ValueError(f"{name} must be more than {min_length} characters.")
+            elif max_length := field.metadata.get("max_length"):
+                if len(str(attr_value)) > max_length:
                     raise ValueError(f"{name} must be less than {max_length} characters.")
-            elif _range := field.metadata.get("range"):
-                if not _range[0] <= attr_value <= _range[1]:
-                    raise ValueError(f"{name} must be between {_range[0]} and {_range[1]}")
+            elif length := field.metadata.get("length"):
+                if len(str(attr_value)) != length:
+                    raise ValueError(f"{name} must be exactly {length} characters.")
             elif must_be_one_of := field.metadata.get("must_be_one_of"):
                 if not str(attr_value) not in must_be_one_of:
                     raise ValueError(f"{name} must be one of: {', '.join(must_be_one_of)}")
-            elif literal := _utils._get_literal_type(field.type):
-                _utils._check_literal_values(name, literal, attr_value)
-            elif issubclass(field.type.__class__, BaseEnum):
-                if attr_value is not field.type:
-                    raise TypeError(f"Expected {name} to be {field.type}, got {attr_value}")
+            elif _range := field.metadata.get("range"):
+                if not isinstance(attr_value, int):
+                    raise TypeError(f"{name} must be of type int, got {type(attr_value)}")
+                if not _range[0] <= attr_value <= _range[1]:
+                    raise ValueError(f"{name} must be a number between {_range[0]} and {_range[1]}")
+            elif is_enum(field):
+                if not isinstance(attr_value, field.type):
+                    raise TypeError(f"Expected {name} to be an enum of {field.type}, got {type(attr_value)}")
+
+            _utils._check_types(name, field.type, attr_value, glbs, lcs)
+            print("END", name, field.type, field, attr_value)
 
     @classmethod
     def _from_endpoint(cls: Type[Self], endpoint: BaseEndpoint) -> Self:
@@ -43,7 +75,7 @@ class BaseModel:
         params_dict = {name: param.value for name, param in endpoint.value.parameters.items()}
         return cls.from_dict(**params_dict)
 
-    def to_dict(self: Self) -> Dict[str, Any]:
+    def to_dict(self: Self) -> dict[str, Any]:
         """Converts this model to a dictionary."""
         base = {}
         for name, field in self.__dataclass_fields__.items():
@@ -57,31 +89,42 @@ class BaseModel:
     @classmethod
     def from_dict(cls: Type[Self], **original_kwargs: Any) -> Self:
         """Converts a dictionary to this model."""
+        reserved_attrs = ("_endpoint",)
         kwargs = {}
         original_kwargs = original_kwargs.copy()
-        fields = cls.__dataclass_fields__
-        if len(original_kwargs) != len(fields):
-            raise TypeError(f"Expected {len(fields)} arguments, got {len(original_kwargs)}")
-
+        fields = cls.__dataclass_fields__.copy()
         for name, value in fields.items():
-            _type = value.type
+            if name in reserved_attrs:
+                continue
+
             alias = value.metadata.get("alias_of")
 
-            if not value.default and any(x not in original_kwargs for x in (name, alias)):
-                raise TypeError(f"Missing required argument {name}")
+            if value.default is MISSING and not any(key in original_kwargs for key in (name, alias)):
+                if name.startswith("_") and name[1:] in original_kwargs:
+                    kwargs[name] = original_kwargs[name[1:]]
+                    continue
+                raise TypeError(f"Missing required argument: {name}")
 
+            _type = value.type
             kwarg_name = alias if alias in original_kwargs else name
 
-            print("from dict type", name, _type)
             if issubclass(_type.__class__, BaseEnum):
-                print("from dict enum", name, _type, original_kwargs[kwarg_name])
-
                 kwargs[name] = _type(original_kwargs[kwarg_name])
             else:
                 kwargs[name] = original_kwargs[kwarg_name]
 
-        return cls(**kwargs)  # type: ignore
+        return cls(**kwargs)
 
     def copy(self: Self) -> Self:
         """Returns a copy of this model."""
         return deepcopy(self)
+
+
+@dataclass
+class BaseImageModel(BaseModel, Image):
+    _image: ClassVar[Image] = field(repr=False, init=False)
+
+    def _set_image(self, image: Image) -> None:
+        self._image = image  # type: ignore
+        self._url = image._url
+        self._http = image._http

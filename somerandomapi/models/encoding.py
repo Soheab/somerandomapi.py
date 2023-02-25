@@ -1,18 +1,19 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING, Literal, Tuple, Dict
 
 from dataclasses import dataclass
+from typing import Literal, TYPE_CHECKING
 
 from ..enums import ResultType
+
 
 if TYPE_CHECKING:
     from typing_extensions import Self
 
 
-__all__: Tuple[str, ...] = ("EncodeResult",)
+__all__ = ("EncodeResult",)
 
 
-@dataclass
+@dataclass(frozen=True)
 class EncodeResult:
     """Represents the result of an encoding."""
 
@@ -30,7 +31,7 @@ class EncodeResult:
         """The type of the result."""
         return ResultType(self._type)
 
-    def to_dict(self) -> Dict[Literal["encode", "decode"], str]:
+    def to_dict(self) -> dict[Literal["encode", "decode"], str]:
         """Converts this model to a dictionary."""
         return {self._type.lower(): self.input}  # type: ignore
 
