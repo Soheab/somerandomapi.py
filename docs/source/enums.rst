@@ -1,0 +1,4 @@
+Enums
+~~~~~~
+
+.. automodule:: somerandomapi.enums
