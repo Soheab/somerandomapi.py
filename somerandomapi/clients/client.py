@@ -10,7 +10,7 @@ from ..internals.endpoints import (
     CanvasMisc as CanvasMiscEndpoint,
     Others as OthersEndpoint,
     WelcomeImages as WelcomeImagesEndpoint,
-    )
+)
 from ..internals.http import HTTPClient
 from ..models.dictionary import Dictionary
 from ..models.encoding import EncodeResult
@@ -235,7 +235,7 @@ class Client:
             Object representing the lyrics result.
         """
         res = await self._http.request(OthersEndpoint.LYRICS, title=song_title)
-        return Lyrics.from_dict(**res)
+        return Lyrics.from_dict(**res)  # type: ignore
 
     async def random_joke(self) -> str:
         """Get a random joke.

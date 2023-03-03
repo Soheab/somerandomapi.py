@@ -22,7 +22,7 @@ class LyricsLinks:
     """
 
     def __init__(self, data: dict[str, Any]) -> None:
-        self.data: dict[str, Any] = data  # type: ignore
+        self.data: dict[str, Any] = data
         self.genius: str = data["genius"]
 
 

@@ -9,7 +9,7 @@ from ..internals.endpoints import (
     CanvasFilter as CanvasFilterEndpoint,
     CanvasMisc as CanvasMiscEndpoint,
     CanvasOverlay as CanvasOverlayEndpoint,
-    )
+)
 from ..models.image import Image
 from ..models.namecard import GenshinNamecard
 from ..models.tweet import Tweet

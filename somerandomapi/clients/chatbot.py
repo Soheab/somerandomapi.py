@@ -243,7 +243,7 @@ class Chatbot:
         client: Optional[Client],
         key: Optional[str],
         key_tier: Optional[Literal[0, 1, 2, 3]],
-        session: Optional[ClientSession],
+        session: Optional[aiohttp.ClientSession],
         /,
     ) -> None:
         attrs = [
