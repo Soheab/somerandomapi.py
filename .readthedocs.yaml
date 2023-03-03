@@ -2,9 +2,7 @@ version: 2
 formats: []
 
 build:
-  image: testing
-  tools:
-    python: "3.9"
+  image: main
 
 sphinx:
   configuration: docs/conf.py
