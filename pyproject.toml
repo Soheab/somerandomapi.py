@@ -52,7 +52,6 @@ packages = [
 homepage = "https://github.com/Soheab/somerandomapi"
 documentation ="https://github.com/Soheab/somerandomapi"
 repository = "https://github.com/Soheab/somerandomapi.git"
-changelog = "https://github.com/Soheab/somerandomapi/blob/master/CHANGELOG.md"
 
 
 [tool.setuptools.dynamic]
@@ -70,9 +69,11 @@ include = [
 ]
 exclude = [
     "**/__pycache__",
+    "_build",
     "build",
     "dist",
     "docs",
+    "docs/source"
 ]
 reportUnnecessaryTypeIgnoreComment = "warning"
 reportUnusedImport = "error"
@@ -83,7 +84,7 @@ reportDeprecated = "warning"
 
 [tool.coverage.run]
 omit = [
-    "discord/types/*",
+    "somerandomapi/types/*",
     "*/_types.py",
 ]
 
