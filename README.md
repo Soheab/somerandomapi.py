@@ -1,26 +1,17 @@
 # somerandomapi.py
 A maintained Python wrapper for the Somerandomapi API.
 
-# THIS IS A WIP.
-## Todo
-- Test it
-- Add documentation
-- Remove debug prints
-- Add logging
-- Handle rate limits when possible
-- Improve code quality
-- Cleanup code
-- Publish to PyPi
-- Profit
+**Documentation**: https://somerandomapi.py.readthedocs.io/en/latest/
+**Examples**: https://github.com/Soheab/somerandomapi.py/blob/main/examples
+**PyPI**: https://pypi.org/project/somerandomapi.py/
 
-## Installation
-soon
+**Installation**: `pip install somerandomapi.py`
 
-## Usage
-soon
 
-## Contributing
-soon
+**API**: https://somerandomapi.com/
+**API Discord**: https://discord.gg/tTUMWFd
 
-## Links
-soon
+**Library Discord**: https://discord.gg/yCzcfju
+
+
+**License**: MLP-2.0
