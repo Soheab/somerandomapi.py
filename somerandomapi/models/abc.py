@@ -24,10 +24,6 @@ class BaseModel:
     _endpoint: ClassVar[BaseEndpoint]
 
     def _validate_types(self, lcs: dict[str, Any], glbs: dict[str, Any]) -> None:
-        self.__current_field_name = ""
-        print("ACTUAL VALIDATION", self.__class__.__name__, self, self.__annotations__)
-        print("FIELDS", self.__dataclass_fields__.keys())
-
         # issubclass throws a TypeError if the first argument is not a class
         def is_enum(field: Field):
             try:
@@ -36,16 +32,10 @@ class BaseModel:
                 return False
 
         for field in fields(self):
-            self.__current_field_name = field.name
-
-            print("FIELD", field.name, field.type, field.metadata)
             name = field.name
             attr_value = getattr(self, name, None)
 
-            print("[os]", name, field.type, field, attr_value, is_enum(field))
-
             if not attr_value or str(field.type).startswith("ClassVar["):
-                print("continue", name, field.type, field, attr_value)
                 continue
             if min_length := field.metadata.get("min_length"):
                 if len(str(attr_value)) < min_length:

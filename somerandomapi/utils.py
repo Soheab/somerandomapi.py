@@ -214,24 +214,20 @@ ObjT = TypeVar("ObjT", bound="BaseModel")
 
 def _handle_obj_or_args(required_object: Any, obj: Optional[ObjT], args: Tuple[Tuple[str, Any, bool], ...]) -> ObjT:
     if obj:
-        print("_handle_obj_or_args", obj, required_object, type(obj), type(required_object))
         if not isinstance(obj, required_object):
             raise TypeError(f"obj argument expected instance of {required_object.__name__}, not {type(obj).__name__}.")
         return obj
 
     required_arguments: list[str] = []
     for name, value, required in args:
-        print("loop args", name, value, required)
         if required and not value:
             required_arguments.append(name)
 
-    print("_handle_obj_or_args ", required_arguments)
     if not obj and required_arguments:
         raise ValueError(
             f"Expected either an instance of {required_object.__name__} to the obj arg or all of these required arguments: {', '.join(required_arguments)}"
         )
 
-    print("_handle_obj_or_args", args)
     return required_object(**{name: value for (name, value, _) in args})
 
 

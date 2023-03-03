@@ -31,13 +31,13 @@ if TYPE_CHECKING:
         Dictionary as DictionaryPayload,
         Joke as JokePayload,
         Lyrics as LyricsPayload,
-        )
+    )
     from ..types.pokemon import (
         PokeDex as PokeDexPayload,
         PokemonAbility as PokemonAbilityPayload,
         PokemonItem as PokemonItemPayload,
         PokemonMove as PokemonMovePayload,
-        )
+    )
     from .endpoints import (
         Animal as AnimalEndpoint,
         Animu as AnimuEndpoint,
@@ -53,7 +53,7 @@ if TYPE_CHECKING:
         Pokemon as PokemonEndpoint,
         Premium as PremiumEndpoint,
         WelcomeImages as WelcomeImagesEndpoint,
-        )
+    )
 
     T = TypeVar("T")
     Response = Coroutine[Any, Any, T]
