@@ -36,10 +36,10 @@ dynamic = ["version", "readme", "description"]
 
 [project.optional-dependencies]
 docs = [
-    "Sphinx=>6.1.*,<=7.0.*",
-    "sphinx_rtd_theme=>1.2.*,<=2.0.*",
-    "sphinx-autodoc-typehints=>1.22.*,<=2.0.*",
-    "enum-tools[sphinx]=>0.9.*,<=1.0.*",
+    "Sphinx==6.1",
+    "sphinx_rtd_theme==1.2.*",
+    "sphinx-autodoc-typehints==1.22",
+    "enum-tools[sphinx]==0.9.*",
 ]
 
 
