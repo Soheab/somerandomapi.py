@@ -62,7 +62,7 @@ repository = "https://github.com/Soheab/somerandomapi.git"
 
 [tool.setuptools.dynamic]
 version = {attr = "somerandomapi.__version__"}
-description = {attr = "somerandomapi.__doc__"}
+description = {file = "somerandomapi.__init__"}
 readme = {file = ["README"], content-type = "text/markdown"}
 
 [tool.pyright]
