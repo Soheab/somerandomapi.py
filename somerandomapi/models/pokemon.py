@@ -18,7 +18,7 @@ if TYPE_CHECKING:
         WithNameIDAndEffects as WithNameIDAndEffectsPayload,
         WithVersion as WithVersionPayload,
         WithVersionAndDescription as WithVersionAndDescriptionPayload,
-    )
+        )
 
 __all__ = (
     "WithName",

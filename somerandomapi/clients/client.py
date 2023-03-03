@@ -10,7 +10,7 @@ from ..internals.endpoints import (
     CanvasMisc as CanvasMiscEndpoint,
     Others as OthersEndpoint,
     WelcomeImages as WelcomeImagesEndpoint,
-)
+    )
 from ..internals.http import HTTPClient
 from ..models.dictionary import Dictionary
 from ..models.encoding import EncodeResult
