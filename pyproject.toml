@@ -79,7 +79,6 @@ exclude = [
     "build",
     "dist",
     "docs",
-    "docs/source"
 ]
 reportUnnecessaryTypeIgnoreComment = "warning"
 reportUnusedImport = "error"
