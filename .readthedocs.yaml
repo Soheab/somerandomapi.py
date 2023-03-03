@@ -2,7 +2,7 @@ version: 2
 formats: []
 
 build:
-  image: latest
+  image: testing
   tools:
     python: "3.9"
 
@@ -20,3 +20,5 @@ python:
         - sphinx_rtd_theme
         - sphinx-autodoc-typehints
         - enum-tools[sphinx]
+
+  
