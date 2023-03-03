@@ -53,7 +53,6 @@ class SomeRandomApiException(Exception):
 
             self.message += f" (Code: {self.code})"
 
-        print("error cALLING", self.message, enum, self.endpoint, self.endpoint.path, enum.base())
         super().__init__(f"While requesting /{self.endpoint.path or enum.base()}: {self.message}")
 
 
@@ -148,7 +147,6 @@ class TypingError(TypeError):
     def __init__(
         self, cls: BaseModel, field: Field, value: Any, *, message: Optional[str] = None, **format_kwarg: Any
     ) -> None:
-        print("typing error", cls, field, field.name, value)
         self.cls: BaseModel = cls
         self.field: Field = field
         message = message or "{field_name} must be of type {field_type}, not {current_type}."

@@ -44,7 +44,6 @@ class WelcomeFree(BaseImageModel):
     """The font from a predefined list. Choose a number between 1 and 10."""
 
     def __post_init__(self):
-        print("post init", self, self.__class__)
         self.__class__._validate_types(self, globals(), locals())
 
     if TYPE_CHECKING:

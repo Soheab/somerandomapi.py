@@ -122,7 +122,6 @@ class Endpoint:
             key_param._validate_key(_key, cls, values.get("key"))
 
         for name, param in params.items():
-            # print("params loop", name, param, values, _key)
             if param.is_key_parameter:
                 continue
 

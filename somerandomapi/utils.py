@@ -59,18 +59,10 @@ def _check_colour_value(hex_input: Optional[Union[str, int]], param_name: Option
 
 
 def _get_literal_type(_type: Type, gs: dict[str, Any], lc: dict[str, Any]) -> Optional[Literal]:
-    print(
-        "_get_literal_type",
-        _type,
-        _type is Literal,
-        type(_type),  # , get_type_hints(_type, gs | globals(), lc | locals())
-    )
     if isinstance(_type, str):
-        print("is str", get_origin(_type))
         _type = eval(_type, gs.update(globals()), lc.update(locals()))
 
     origin = get_origin(_type)
-    print("_get_literal_type", _type, _type is Literal, type(_type), origin is Literal)
 
     if origin is Literal:
         return _type
@@ -79,10 +71,7 @@ def _get_literal_type(_type: Type, gs: dict[str, Any], lc: dict[str, Any]) -> Op
 
 
 def _check_literal_values(cls, field: Field, _type: Literal, values: Tuple[Any, ...]) -> None:
-    print("_check_literal_values", field.name, _type, values)
-
     args = get_args(_type)
-    print("args 1", args)
     # shouldn't happen.
     if len(args) < 1:
         raise TypeError("Expected more than one argument for Literal type")
@@ -102,17 +91,14 @@ def _check_literal_values(cls, field: Field, _type: Literal, values: Tuple[Any, 
 
 
 def _is_optional(_type: Type) -> bool:
-    print("_is_optional", _type, get_origin(_type))
     return get_origin(_type) is Union and type(None) in get_args(_type)
 
 
 def _get_type(_type: Type, gs: dict[str, Any], lc: dict[str, Any]) -> Tuple[Any, ...]:
     origin = get_origin(_type)
-    print("_get_type", _type, origin)
     if literal := _get_literal_type(_type, gs, lc):
         return (literal,)
     elif origin is Union:
-        print("is union", _type, get_args(_type))
         if _is_optional(_type):
             return [x for x in get_args(_type) if x is not type(None)][0]
 
@@ -138,7 +124,6 @@ def _check_types(
     glbs = gls | globals()
     lcls = lcs | locals()
 
-    print("_check_types", field.name, _type, value)
     if isinstance(_type, str):
         _type = eval(_type, glbs, lcls)
 
@@ -146,18 +131,15 @@ def _check_types(
         return
 
     if literal := _get_literal_type(_type, glbs, lcls):
-        print("literal", literal)
         _check_literal_values(cls, field, literal, (value,))
         return
 
     origin = get_origin(_type)
-    print("_check_types", field.name, _type, value, origin)
     if origin is Union:
         if _is_optional(_type):
             if value is None:
                 return
             _type = [x for x in get_args(_type) if x is not type(None)][0]
-            print("_check_types", field.name, _type, value, origin)
             _check_types(cls, field, _type, value, glbs, lcls)
             return
 
