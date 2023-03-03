@@ -3,13 +3,13 @@ formats: []
 
 build:
   image: latest
+  tools:
+    python: "3.9"
 
 sphinx:
   configuration: docs/conf.py
   fail_on_warning: false
   builder: html
-  tools:
-    python: "3.9"
 
 python:
   version: 3.9
