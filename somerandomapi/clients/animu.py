@@ -10,18 +10,18 @@ if TYPE_CHECKING:
     from ..internals.http import HTTPClient
 
 
-__all__ = ("Animu",)
+__all__ = ("AnimuClient",)
 
 
-class Animu:
+class AnimuClient:
     """Represents the "Animu" endpoint.
 
-    This class is not meant to be instantiated by the user. Instead, access it through the `animu` attribute of the `Client` class.
+    This class is not meant to be instantiated by the user. Instead, access it through the :attr:`~somerandomapi.Client.animu` attribute of the :class:`~somerandomapi.Client` class.
     """
 
     __slots__ = ("__http",)
 
-    def __init__(self, http: HTTPClient) -> None:
+    def __init__(self, http) -> None:
         self.__http: HTTPClient = http
 
     async def face_palm(self) -> str:
@@ -34,6 +34,10 @@ class Animu:
         """
         response = await self.__http.request(AnimuEndpoint.FACE_PALM)
         return response["link"]
+
+    async def facepalm(self) -> str:
+        """Alias for :meth:`face_palm`."""
+        return await self.face_palm()
 
     async def hug(self) -> str:
         """Get a random animu hug image.

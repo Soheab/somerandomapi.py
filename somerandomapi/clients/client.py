@@ -1,15 +1,17 @@
 from __future__ import annotations
 
-from typing import Any, Literal, Optional, overload, TYPE_CHECKING, Union
+from typing import Literal, Optional, overload, TYPE_CHECKING, Union
+
+import aiohttp
 
 from .. import utils as _utils
-from ..clients.chatbot import Chatbot
+from ..enums import WelcomeBackground, WelcomeTextColor, WelcomeType
 from ..internals.endpoints import (
     CanvasMisc as CanvasMiscEndpoint,
     Others as OthersEndpoint,
     WelcomeImages as WelcomeImagesEndpoint,
 )
-from ..internals.http import APIKey, HTTPClient
+from ..internals.http import HTTPClient
 from ..models.dictionary import Dictionary
 from ..models.encoding import EncodeResult
 from ..models.lyrics import Lyrics
@@ -18,13 +20,12 @@ from ..models.welcome.free import WelcomeFree
 
 
 if TYPE_CHECKING:
-    from aiohttp import ClientSession
-
-    from ..enums import WelcomeBackground, WelcomeType
-    from ..types.welcome import WelcomeTextColors
-    from .animal import Animal
-    from .animu import Animu
-    from .canvas import Canvas
+    from .animal import AnimalClient
+    from .animu import AnimuClient
+    from .canvas import CanvasClient
+    from .chatbot import Chatbot
+    from .pokemon import PokemonClient
+    from .premium import PremiumClient
 
 
 __all__ = ("Client",)
@@ -38,20 +39,20 @@ class Client:
     session: Optional[:class:`aiohttp.ClientSession`]
         The session to use for requests. If not provided, a new session will be created.
 
-    key: Optional[:class:`tuple[Literal[0, 1, 2, 3], str]]
+    key: Optional[Tuple[Literal[0, 1, 2, 3], :class:`str`]]
         The API key to use for requests as a tuple of tier and key.
-        E,g, (0, "key") for tier 0 (this can also be used when you don't know the tier)
+        E,g, ``(0, "key")`` for tier 0 (this can also be used when you don't know the tier)
 
         A key can also be passed per-request, in which case it will override the key passed to the client.
 
-        For more information on the tiers, see the API documentation: https://somerandomapi.com/docs#api-keys
+        For more information on the tiers, :apidocs:`see the API documentation <#api-keys>`
 
     """
 
     __slots__: tuple[str, ...] = ("_http", "__chatbot")
 
     def __init__(
-        self, key: Optional[Union[tuple[Literal[0, 1, 2, 3], str], APIKey]], *, session: Optional[ClientSession] = None
+        self, key: Optional[tuple[Literal[0, 1, 2, 3], str]], *, session: Optional[aiohttp.ClientSession] = None
     ) -> None:
         self._http = HTTPClient(key, session)
         self.__chatbot: Optional[Chatbot] = None
@@ -63,36 +64,45 @@ class Client:
         await self.close()
 
     @property
-    def animu(self) -> Animu:
-        """:class:`Animu`: The Animu endpoint."""
+    def animu(self) -> AnimuClient:
+        """:class:`.AnimuClient`: The Animu endpoint."""
         return self._http._animu
 
     @property
-    def animal(self) -> Animal:
-        """:class:`Animal`: The Animal endpoint."""
+    def animal(self) -> AnimalClient:
+        """:class:`.AnimalClient`: The Animal endpoint."""
         return self._http._animal
 
     @property
-    def canvas(self) -> Canvas:
-        """:class:`Canvas`: The Canvas endpoint."""
+    def canvas(self) -> CanvasClient:
+        """:class:`.CanvasClient`: The Canvas endpoint."""
         return self._http._canvas
 
+    @property
+    def pokemon(self) -> PokemonClient:
+        """:class:`.PokemonClient`: The Pokemon endpoint."""
+        return self._http._pokemon
+
+    @property
+    def premium(self) -> PremiumClient:
+        """:class:`.PremiumClient`: The Premium endpoint."""
+        return self._http._premium
+
     def chatbot(self, message: Optional[str] = None) -> Chatbot:
-        """The Chatbot endpoint.
+        """:apidocs:`See this endpoint's on the API Documentation. <chatbot#chatbot>`.
+
+        The Chatbot endpoint.
 
         Parameters
         ----------
         message: Optional[:class:`str`]
-            The message to send to the chatbot.
-            If not provided, the Chatbot object will be returned instead which has a send method and supports ``async with``.
-            else, :class:`ChatbotResult` will be returned. `.response` on that is the response from the chatbot.
-
+            The message to send to the chatbot. If not provided, the Chatbot object will be returned instead which has a send method and supports ``async with``
+            else :class:`.ChatbotResult` will be returned. ``.response`` on that is the response from the chatbot.
 
         Returns
         -------
-        Union[:class:`Chatbot`, :class:`ChatbotResult`]
-            The Chatbot object or the ChatbotResult object.
-            ``ChatbotResult``is returned if ``message`` is provided and ``await`` is used else ``Chatbot``.
+        Union[:class:`.Chatbot`, :class:`.ChatbotResult`]
+            The Chatbot object or the ChatbotResult object. ``ChatbotResult`` is returned if ``message`` is provided and ``await`` is used else ``Chatbot``.
         """
         if self.__chatbot:
             self.__chatbot.message = message
@@ -120,30 +130,121 @@ class Client:
         )
 
     async def encode_base64(self, input: str) -> EncodeResult:
+        """Encode a string to base64.
+
+        Parameters
+        ----------
+        input: :class:`str`
+            The string to encode.
+
+        Returns
+        -------
+        :class:`.EncodeResult`
+            Object representing the result of the encoding.
+        """
         return await self._handle_encode_decode("ENCODE", "base64", input)
 
     async def decode_base64(self, input: str) -> EncodeResult:
+        """Decode a base64 string.
+
+        Parameters
+        ----------
+        input: :class:`str`
+            The base64 string to decode.
+
+        Returns
+        -------
+        :class:`.EncodeResult`
+            Object representing the result of the decoding.
+        """
         return await self._handle_encode_decode("DECODE", "base64", input)
 
     async def encode_binary(self, input: str) -> EncodeResult:
+        """Encode a string to binary.
+
+        Parameters
+        ----------
+        input: :class:`str`
+            The string to encode.
+
+        Returns
+        -------
+        :class:`.EncodeResult`
+            Object representing the result of the encoding.
+        """
         return await self._handle_encode_decode("ENCODE", "binary", input)
 
     async def decode_binary(self, input: str) -> EncodeResult:
+        """Decode a binary string.
+
+        Parameters
+        ----------
+        input: :class:`str`
+            The binary string to decode.
+
+        Returns
+        -------
+        :class:`.EncodeResult`
+            Object representing the result of the decoding.
+        """
         return await self._handle_encode_decode("DECODE", "binary", input)
 
     async def generate_bot_token(self, bot_id: Union[str, int]) -> str:
+        """Generate a very realistic bot token
+
+        Parameters
+        ----------
+        bot_id: Union[:class:`str`, :class:`int`]
+            The bot ID to generate the token for.
+
+        Returns
+        -------
+        :class:`str`
+            The generated token.
+        """
         res = await self._http.request(OthersEndpoint.BOTTOKEN, id=bot_id)
         return res["token"]
 
-    async def dictionary(self, word: str) -> Any:
+    async def dictionary(self, word: str) -> Dictionary:
+        """Get the dictionary meaning of a word.
+
+        Parameters
+        ----------
+        word: :class:`str`
+            The word to get the meaning of.
+
+        Returns
+        -------
+        :class:`.Dictionary`
+            Object representing the dictionary result.
+        """
         res = await self._http.request(OthersEndpoint.DICTIONARY, word=word)
         return Dictionary.from_dict(**res)
 
-    async def lyrics(self, song_title: str) -> Any:
+    async def lyrics(self, song_title: str) -> Lyrics:
+        """Get the lyrics of a song.
+
+        Parameters
+        ----------
+        song_title: :class:`str`
+            The title of the song to get the lyrics of.
+
+        Returns
+        -------
+        :class:`.Lyrics`
+            Object representing the lyrics result.
+        """
         res = await self._http.request(OthersEndpoint.LYRICS, title=song_title)
         return Lyrics.from_dict(**res)
 
     async def random_joke(self) -> str:
+        """Get a random joke.
+
+        Returns
+        -------
+        :class:`str`
+            The joke.
+        """
         res = await self._http.request(OthersEndpoint.JOKE)
         return res["joke"]
 
@@ -193,8 +294,8 @@ class Client:
 
         Returns
         -------
-        :class:`RGB`
-            Object containing the RGB values. Use ``.to_tuple()`` to get a tuple with the RGB values (``(r, g, b)``).
+        :class:`.RGB`
+            Object containing the RGB values. Use ``.as_tuple`` to get a tuple with the RGB values (``(r, g, b)``).
         """
         return await self._handle_rgb_or_hex(CanvasMiscEndpoint.RGB, hex)
 
@@ -207,13 +308,42 @@ class Client:
         background: Optional[WelcomeBackground] = None,
         avatar_url: Optional[str] = None,
         username: Optional[str] = None,
-        discriminator: Optional[str] = None,
+        discriminator: Optional[Union[int, str]] = None,
         server_name: Optional[str] = None,
         member_count: Optional[int] = None,
-        text_color: Optional[WelcomeTextColors] = None,
+        text_color: Optional[WelcomeTextColor] = None,
         key: Optional[str] = None,
         font: Optional[int] = None,
     ) -> WelcomeFree:
+        """Generate a welcome image.
+
+        Parameters
+        ----------
+        obj: Optional[:class:`.WelcomeFree`]
+            The object to use. If not passed, the other parameters will be used and a new object will be created.
+        template: Optional[Literal[1, 2, 3, 4, 5, 6, 7, 8]]
+            The template to use. Required if ``obj`` is not passed.
+        type: Optional[:class:`.WelcomeType`]
+            The type of welcome image to generate. Required if ``obj`` is not passed.
+        background: Optional[:class:`.WelcomeBackground`]
+            The background to use. Required if ``obj`` is not passed.
+        avatar_url: Optional[:class:`str`]
+            The avatar URL to use. Required if ``obj`` is not passed.
+        username: Optional[:class:`str`]
+            The username to use. Required if ``obj`` is not passed.
+        discriminator: Optional[Union[:class:`int`, :class:`str`]]
+            The discriminator to use. Required if ``obj`` is not passed.
+        server_name: Optional[:class:`str`]
+            The server name to use. Required if ``obj`` is not passed.
+        member_count: Optional[:class:`int`]
+            The member count to use. Required if ``obj`` is not passed.
+        text_color: Optional[:class:`.WelcomeTextColor`]
+            The text color to use. Required if ``obj`` is not passed.
+        key: Optional[:class:`str`]
+            The key to use. Required if a key was not passed when creating the client.
+        font: Optional[:class:`int`]
+            The font to use.
+        """
         values = (
             ("template", template, True),
             ("type", type, True),

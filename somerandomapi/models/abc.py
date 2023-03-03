@@ -4,6 +4,7 @@ from copy import deepcopy
 from dataclasses import dataclass, Field, field, fields, MISSING
 from typing import Any, ClassVar, Type, TYPE_CHECKING
 
+from somerandomapi.errors import TypingError
 from somerandomapi.models.image import Image
 
 from .. import utils as _utils
@@ -23,6 +24,7 @@ class BaseModel:
     _endpoint: ClassVar[BaseEndpoint]
 
     def _validate_types(self, lcs: dict[str, Any], glbs: dict[str, Any]) -> None:
+        self.__current_field_name = ""
         print("ACTUAL VALIDATION", self.__class__.__name__, self, self.__annotations__)
         print("FIELDS", self.__dataclass_fields__.keys())
 
@@ -34,6 +36,8 @@ class BaseModel:
                 return False
 
         for field in fields(self):
+            self.__current_field_name = field.name
+
             print("FIELD", field.name, field.type, field.metadata)
             name = field.name
             attr_value = getattr(self, name, None)
@@ -45,27 +49,62 @@ class BaseModel:
                 continue
             if min_length := field.metadata.get("min_length"):
                 if len(str(attr_value)) < min_length:
-                    raise ValueError(f"{name} must be more than {min_length} characters.")
+                    raise TypingError(
+                        self,
+                        field,
+                        attr_value,
+                        message="{field_name} must be more than {min_length} characters.",
+                        min_length=min_length,
+                    )
             elif max_length := field.metadata.get("max_length"):
                 if len(str(attr_value)) > max_length:
-                    raise ValueError(f"{name} must be less than {max_length} characters.")
+                    raise TypingError(
+                        self,
+                        field,
+                        attr_value,
+                        message="{field_name} must be less than {max_length} characters.",
+                        max_length=max_length,
+                    )
             elif length := field.metadata.get("length"):
                 if len(str(attr_value)) != length:
-                    raise ValueError(f"{name} must be exactly {length} characters.")
+                    raise TypingError(
+                        self,
+                        field,
+                        attr_value,
+                        message="{field_name} must be exactly {length} characters.",
+                        length=length,
+                    )
             elif must_be_one_of := field.metadata.get("must_be_one_of"):
                 if not str(attr_value) not in must_be_one_of:
-                    raise ValueError(f"{name} must be one of: {', '.join(must_be_one_of)}")
+                    raise TypingError(
+                        self,
+                        field,
+                        attr_value,
+                        message="{field_name} must be one of: {must_be_one_of}",
+                        one_of=must_be_one_of,
+                    )
             elif _range := field.metadata.get("range"):
                 if not isinstance(attr_value, int):
-                    raise TypeError(f"{name} must be of type int, got {type(attr_value)}")
+                    raise TypingError(self, field, attr_value)
                 if not _range[0] <= attr_value <= _range[1]:
-                    raise ValueError(f"{name} must be a number between {_range[0]} and {_range[1]}")
+                    raise TypingError(
+                        self,
+                        field,
+                        attr_value,
+                        message="{field_name} must be a number between {_range[0]} and {_range[1]}",
+                        _range=_range,
+                    )
             elif is_enum(field):
                 if not isinstance(attr_value, field.type):
-                    raise TypeError(f"Expected {name} to be an enum of {field.type}, got {type(attr_value)}")
+                    raise TypingError(
+                        self,
+                        field,
+                        attr_value,
+                        message="Expected {field_name} to be an enum of {enum_type}, got {field_value_type}.",
+                        enum_type=field.type.__name__,
+                    )
 
-            _utils._check_types(name, field.type, attr_value, glbs, lcs)
-            print("END", name, field.type, field, attr_value)
+            _utils._check_types(self, field, field.type, attr_value, glbs, lcs)
 
     @classmethod
     def _from_endpoint(cls: Type[Self], endpoint: BaseEndpoint) -> Self:

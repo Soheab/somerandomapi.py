@@ -8,18 +8,12 @@ __all__ = ("AnimuQuote",)
 class AnimuQuote:
     """Represents an animu quote.
 
-    This class is not meant to be instantiated by the user. Instead, access it through the `quote` method of the `Animu` class.
-
-    Attributes
-    ----------
-    sentance: :class:`str`
-        The quote.
-    character: :class:`str`
-        The character who said the quote.
-    anime: :class:`str`
-        The anime the quote is from.
+    This class is not meant to be instantiated by the user. Instead, access it through the :meth:`~somerandomapi.AnimuClient.quote` method of the :class:`~somerandomapi.AnimuClient` class.
     """
 
-    sentance: str
+    sentence: str
+    """The quote."""
     character: str
+    """The character who said the quote."""
     anime: str
+    """The anime the quote is from."""

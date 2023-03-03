@@ -9,6 +9,10 @@ __all__ = (
     "CanvasOverlay",
     "CanvasBorder",
     "CanvasCrop",
+    "WelcomeType",
+    "WelcomeBackground",
+    "WelcomeTextColor",
+    "ResultType",
 )
 
 
@@ -18,6 +22,8 @@ class BaseEnum(Enum):
 
 
 class Animal(BaseEnum):
+    """Enum holding all the animals that can be used in the animal endpoints."""
+
     BIRD = "bird"
     CAT = "cat"
     DOG = "dog"

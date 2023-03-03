@@ -14,18 +14,18 @@ if TYPE_CHECKING:
     from ..types.img import Images as ImgAnimalsLiterals
 
 
-__all__ = ("Animal",)
+__all__ = ("AnimalClient",)
 
 
-class Animal:
+class AnimalClient:
     """Represents the "Animal" endpoint.
 
-    This class is not meant to be instantiated by the user. Instead, access it through the `animal` attribute of the `Client` class.
+    This class is not meant to be instantiated by the user. Instead, access it through the :attr:`~somerandomapi.Client.animal` attribute of the :class:`~somerandomapi.Client` class.
     """
 
     __slots__ = ("__http",)
 
-    def __init__(self, http: HTTPClient) -> None:
+    def __init__(self, http) -> None:
         self.__http: HTTPClient = http
 
     async def get_image_and_fact(self, animal: Union[AnimalEnum, AnimalsLiterals]) -> AnimalImageFact:
@@ -33,13 +33,13 @@ class Animal:
 
         Parameters
         ----------
-        animal: Union[:class:`Animal`, :class:`str`]
+        animal: Union[:class:`.Animal`, :class:`str`]
             The animal to get.
 
         Returns
         -------
-        :class:`Animal`
-            Object representing the requested animal. It has attributes such as ``image`` and ``link`` that can be accessed.
+        :class:`.AnimalImageFact`
+            Object representing the requested animal and its fact.
         """
         _animal: AnimalEnum = animal  # type: ignore
         if not isinstance(animal, AnimalEnum):
@@ -60,7 +60,7 @@ class Animal:
 
         Parameters
         ----------
-        animal: Union[:class:`ImgAnimal`, :class:`str`]
+        animal: Union[:class:`.ImgAnimal`, :class:`str`]
             The animal to get an image of.
 
 
@@ -88,7 +88,7 @@ class Animal:
 
         Parameters
         ----------
-        animal: Union[:class:`FactAnimal`, :class:`str`]
+        animal: Union[:class:`.FactAnimal`, :class:`str`]
             The animal to get a fact about.
 
 

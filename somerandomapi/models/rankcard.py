@@ -19,7 +19,7 @@ class Rankcard(BaseImageModel):
     """The username of the user. Max 32 characters."""
     avatar_url: str = field(metadata={"alias_of": "avatar"})
     """The avatar URL of the user. Must be .png or .jpg."""
-    discriminator: int
+    discriminator: int = field(metadata={"length": 4})
     """The discriminator of the user."""
     level: int
     """The current level of the user."""
@@ -83,23 +83,19 @@ class Rankcard(BaseImageModel):
             "Invalid {0} color. Must be a valid hex color or 'random'. Valid formats: '#000000', 0x000000, 000000"
         )
         if self.background_color is not None:
-            if not (
-                color := _utils._check_colour_value(self.background_color, random=self.background_color == "random")
-            ):
+            if not (color := _utils._check_colour_value(self.background_color)):
                 raise ValueError(COLOR_ERROR.format("background"))
             self.background_color = color
         if self.text_color is not None:
-            if not (color := _utils._check_colour_value(self.text_color, random=self.text_color == "random")):
+            if not (color := _utils._check_colour_value(self.text_color)):
                 raise ValueError(COLOR_ERROR.format("text"))
             self.text_color = color
         if self.current_xp_color is not None:
-            if not (
-                color := _utils._check_colour_value(self.current_xp_color, random=self.current_xp_color == "random")
-            ):
+            if not (color := _utils._check_colour_value(self.current_xp_color)):
                 raise ValueError(COLOR_ERROR.format("current xp"))
             self.current_xp_color = color
         if self.xp_bar_color is not None:
-            if not (color := _utils._check_colour_value(self.xp_bar_color, random=self.xp_bar_color == "random")):
+            if not (color := _utils._check_colour_value(self.xp_bar_color)):
                 raise ValueError(COLOR_ERROR.format("xp bar"))
             self.bar_color = color
 

@@ -34,7 +34,7 @@ class WelcomeFree(BaseImageModel):
     member_count: int = field(metadata={"alias_of": "memberCount"})
     """The member count."""
     text_color: WelcomeTextColor = field(metadata={"alias_of": "textcolor"})
-    """The text color. Must be one of: red, orange, yellow, green, blue, indigo, purple, purple, pink, black, white."""
+    """The text color."""
     key: Optional[str] = field(default=None, repr=False)
     """The key, doesn't need to be active.
     
@@ -44,6 +44,7 @@ class WelcomeFree(BaseImageModel):
     """The font from a predefined list. Choose a number between 1 and 10."""
 
     def __post_init__(self):
+        print("post init", self, self.__class__)
         self.__class__._validate_types(self, globals(), locals())
 
     if TYPE_CHECKING:

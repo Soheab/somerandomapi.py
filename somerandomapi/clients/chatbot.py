@@ -8,7 +8,7 @@ from functools import partial
 from types import TracebackType
 from typing import Any, Callable, Coroutine, Generator, Literal, Optional, Protocol, Type, TYPE_CHECKING
 
-from aiohttp import ClientSession
+import aiohttp
 
 from ..internals.endpoints import Chatbot as ChatbotEndpoints
 from ..internals.http import HTTPClient
@@ -134,33 +134,50 @@ class Chatbot:
     This is a context manager that should be used with the ``async with`` statement to ensure the session is closed.
     Sending a message is done by calling the send method.
 
+    .. container:: operations
+
+        .. describe:: async with x
+
+            Enters the context manager and returns the client.
+
+        .. describe:: await x(message)
+
+            Sends a message to the chatbot and returns the response.
+
+
     Example
     -------
 
     .. code-block:: python3
+        :linenos:
+
         async with Chatbot(...) as chatbot:
             # response = await chatbot.send("Hello") is also valid.
             async with chatbot.send("Hello") as response:
                 print(response.response)
 
     But you can also use it with the ``await`` keyword.
+
     .. code-block:: python3
+        :linenos:
+
         chatbot = Chatbot(...)
         response = await chatbot.send("Hello")
         print(response.response)
 
     Or if you don't want to use the ``.send()`` method, you can use ``await`` on the instance of this class directly with the message set on the ``message`` attribute.
+
     .. code-block:: python3
+        :linenos:
+
         chatbot = Chatbot(message="Hello")
         response = await chatbot()
-
-
 
     Parameters
     ----------
     message: Optional[:class:`str`]
         The message to send to the chatbot. This is only used if you use the ``await`` keyword on an instance of this class.
-    client: Optional[:class:`Client`]
+    client: Optional[:class:`.Client`]
         The client. If this is not provided, you must provide a key and a key_tier.
         This is also used a session if you don't provide one.
 
@@ -209,7 +226,7 @@ class Chatbot:
         key: Optional[str] = None,
         key_tier: Optional[Literal[0, 1, 2, 3]] = None,
         # _handle_ratelimit: bool = False,
-        session: Optional[ClientSession] = None,
+        session: Optional[aiohttp.ClientSession] = None,
     ) -> None:
         self._has_provided_client: bool = client is not None
         self._has_provided_session: bool = session is not None
@@ -303,17 +320,12 @@ class Chatbot:
         self._message = message
 
     def send(self, message: str):
-        """Sends a message to the chatbot.
+        """Sends a message to the chatbot. See :class:`Chatbot` for more information.
 
         Parameters
         ----------
         message: :class:`str`
             The message to send to the chatbot.
-
-        Returns
-        -------
-        :class:`ChatbotSendContextManager`
-            A context manager that sends the message to the chatbot and returns the result.
         """
         return _ChatbotSendContextManager(self.__do_request, self.close, message)
 

@@ -31,7 +31,7 @@ class WelcomePremium(BaseImageModel):
     member_count: int = field(metadata={"alias_of": "memberCount"})
     """The member count."""
     text_color: WelcomeTextColor = field(metadata={"alias_of": "textcolor"})
-    """The text color. Must be one of: red, orange, yellow, green, blue, indigo, purple, purple, pink, black, white."""
+    """The text color."""
     key: Optional[str] = field(default=None, repr=False)
     """The key. At least tier 2 is required. Use the free endpoint if you don't have a tier 2 key.
     

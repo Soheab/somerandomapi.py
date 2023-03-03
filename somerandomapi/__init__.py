@@ -4,7 +4,8 @@ somerandomapi.py
 A maintained Python wrapper for the Somerandomapi API.
 """
 
-from .clients.client import *
+from .clients import *
+from .enums import *
 from .models import *
 
 

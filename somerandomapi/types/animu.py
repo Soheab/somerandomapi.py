@@ -17,6 +17,6 @@ class Animu(WithLink):
 
 
 class AnimuQuote(TypedDict):
-    sentance: str
+    sentence: str
     character: str
     anime: str

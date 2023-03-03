@@ -129,8 +129,11 @@ class Endpoint:
             if not param.required and name not in values:
                 continue
 
-            if param.required and name not in values:
-                raise TypeError(f"Missing required parameter {name}")
+            if param.required:
+                if name not in values:
+                    raise TypeError(f"Missing required parameter {name}")
+                elif not values[name]:
+                    raise TypeError(f"Missing required value for parameter {name}")
 
             if param.key_tier:
                 if key_param and key_param._key_value:
@@ -352,7 +355,7 @@ class Others(BaseEndpoint):
 class Pokemon(BaseEndpoint):
     @classmethod
     def base(cls):
-        return "pokemon"
+        return "pokemon/"
 
     ABILITIES = Endpoint("abilities", ability=Parameter(extra="Ability name or id of a pokemon ability"))
     ITEMS = Endpoint("items", item=Parameter(extra="Item name or id of a pokemon item"))

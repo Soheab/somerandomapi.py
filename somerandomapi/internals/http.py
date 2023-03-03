@@ -6,9 +6,11 @@ from urllib.parse import quote_plus, urlencode
 
 import aiohttp
 
-from ..clients.animal import Animal
-from ..clients.animu import Animu
-from ..clients.canvas import Canvas
+from ..clients.animal import AnimalClient
+from ..clients.animu import AnimuClient
+from ..clients.canvas import CanvasClient
+from ..clients.pokemon import PokemonClient
+from ..clients.premium import PremiumClient
 from ..errors import *
 from ..models.image import Image
 from ..models.welcome import WelcomeFree, WelcomePremium
@@ -29,13 +31,13 @@ if TYPE_CHECKING:
         Dictionary as DictionaryPayload,
         Joke as JokePayload,
         Lyrics as LyricsPayload,
-    )
+        )
     from ..types.pokemon import (
         PokeDex as PokeDexPayload,
         PokemonAbility as PokemonAbilityPayload,
         PokemonItem as PokemonItemPayload,
         PokemonMove as PokemonMovePayload,
-    )
+        )
     from .endpoints import (
         Animal as AnimalEndpoint,
         Animu as AnimuEndpoint,
@@ -51,7 +53,7 @@ if TYPE_CHECKING:
         Pokemon as PokemonEndpoint,
         Premium as PremiumEndpoint,
         WelcomeImages as WelcomeImagesEndpoint,
-    )
+        )
 
     T = TypeVar("T")
     Response = Coroutine[Any, Any, T]
@@ -77,7 +79,7 @@ class APIKey(NamedTuple):
 class HTTPClient:
     BASE_URL: ClassVar[str] = "https://some-random-api.ml"
 
-    __slots__ = ("_animal", "_animu", "_canvas", "_key", "_session", "__chatbot")
+    __slots__ = ("_animal", "_animu", "_canvas", "_pokemon", "_premium", "_key", "_session", "__chatbot")
 
     def __init__(
         self,
@@ -98,9 +100,11 @@ class HTTPClient:
 
                 self._key = APIKey(*key)
 
-        self._animal: Animal = Animal(self)
-        self._animu: Animu = Animu(self)
-        self._canvas: Canvas = Canvas(self)
+        self._animal: AnimalClient = AnimalClient(self)
+        self._animu: AnimuClient = AnimuClient(self)
+        self._canvas: CanvasClient = CanvasClient(self)
+        self._pokemon: PokemonClient = PokemonClient(self)
+        self._premium: PremiumClient = PremiumClient(self)
 
         self.__chatbot: Optional[Chatbot] = None
 

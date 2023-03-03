@@ -8,15 +8,10 @@ __all__ = ("AnimalImageFact",)
 class AnimalImageFact:
     """Represents an animal image fact.
 
-    This class is not meant to be instantiated by the user. Instead, access it through the `image_fact` method of the `Animal` class.
-
-    Attributes
-    ----------
-    fact: :class:`str`
-        The fact.
-    image: :class:`str`
-        The image URL.
+    This class is not meant to be instantiated by the user. Instead, get it through the :meth:`~somerandomapi.AnimalClient.get_image_and_fact` method on the :class:`~somerandomapi.AnimalClient`.
     """
 
     fact: str
+    """The animal fact."""
     image: str
+    """The animal image URL."""

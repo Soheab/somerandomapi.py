@@ -2,7 +2,10 @@ from __future__ import annotations
 
 import random
 import re
+from dataclasses import Field
 from typing import Any, get_args, get_origin, Literal, Match, Optional, Tuple, Type, TYPE_CHECKING, TypeVar, Union
+
+from somerandomapi.errors import TypingError
 
 
 if TYPE_CHECKING:
@@ -35,11 +38,15 @@ def _gen_colour(numbers: Optional[int] = None) -> str:
     return hex_number[2:]
 
 
-def _check_colour_value(hex_input: Optional[Union[str, int]], random: bool = False) -> Optional[str]:
-    if not hex_input and not random:
-        return None
+def _check_colour_value(hex_input: Optional[Union[str, int]], param_name: Optional[str] = None) -> str:
+    INVALID_COLOR_ERROR = (
+        f"'{param_name or 'colour'}' must be a valid hex value (#000000, 000000 or 0x000000) or 'random'"
+    )
+    should_random = str(hex_input).lower() == "random"
+    if not hex_input and not should_random:
+        raise ValueError(INVALID_COLOR_ERROR)
 
-    if not hex_input and random:
+    if should_random:
         return _gen_colour()
     elif hex_input and isinstance(hex_input, int):
         return _gen_colour(int(hex_input))
@@ -48,9 +55,7 @@ def _check_colour_value(hex_input: Optional[Union[str, int]], random: bool = Fal
         if match:
             return match.string.strip("#")
 
-        if not random:
-            return None
-        return _gen_colour()
+    raise ValueError(INVALID_COLOR_ERROR)
 
 
 def _get_literal_type(_type: Type, gs: dict[str, Any], lc: dict[str, Any]) -> Optional[Literal]:
@@ -73,18 +78,27 @@ def _get_literal_type(_type: Type, gs: dict[str, Any], lc: dict[str, Any]) -> Op
     return None
 
 
-def _check_literal_values(arg_name: str, _type: Literal, values: Tuple[Any, ...]) -> None:
-    print("_check_literal_values", arg_name, _type, values)
+def _check_literal_values(cls, field: Field, _type: Literal, values: Tuple[Any, ...]) -> None:
+    print("_check_literal_values", field.name, _type, values)
 
     args = get_args(_type)
     print("args 1", args)
+    # shouldn't happen.
     if len(args) < 1:
         raise TypeError("Expected more than one argument for Literal type")
 
     join_args = ", ".join(map(str, args))
     for val in values:
         if val not in args:
-            raise ValueError(f"'{val}' is not a valid value for argument `{arg_name}`. Expected one of: {join_args}")
+            raise TypingError(
+                cls,
+                field,
+                values,
+                messages="'{val}' is not a valid value for argument `{arg_name}`. Expected one of: {join_args}",
+                val=val,
+                arg_name=field.name,
+                join_args=join_args,
+            )
 
 
 def _is_optional(_type: Type) -> bool:
@@ -119,12 +133,12 @@ def _get_type(_type: Type, gs: dict[str, Any], lc: dict[str, Any]) -> Tuple[Any,
 
 
 def _check_types(
-    arg_name: str, _type: Type, value: Union[str, int, Any], gls: dict[str, Any], lcs: dict[str, Any]
+    cls, field: Field, _type: Type, value: Union[str, int, Any], gls: dict[str, Any], lcs: dict[str, Any]
 ) -> None:
     glbs = gls | globals()
     lcls = lcs | locals()
 
-    print("_check_types", arg_name, _type, value)
+    print("_check_types", field.name, _type, value)
     if isinstance(_type, str):
         _type = eval(_type, glbs, lcls)
 
@@ -133,60 +147,64 @@ def _check_types(
 
     if literal := _get_literal_type(_type, glbs, lcls):
         print("literal", literal)
-        _check_literal_values(arg_name, literal, (value,))
+        _check_literal_values(cls, field, literal, (value,))
         return
 
     origin = get_origin(_type)
-    print("_check_types", arg_name, _type, value, origin)
+    print("_check_types", field.name, _type, value, origin)
     if origin is Union:
         if _is_optional(_type):
             if value is None:
                 return
             _type = [x for x in get_args(_type) if x is not type(None)][0]
-            print("_check_types", arg_name, _type, value, origin)
-            _check_types(arg_name, _type, value, glbs, lcls)
+            print("_check_types", field.name, _type, value, origin)
+            _check_types(cls, field, _type, value, glbs, lcls)
             return
 
         args = get_args(_type)
         for arg in args:
             if get_origin(arg) is Literal:
-                _check_literal_values(arg_name, arg, (value,))
+                _check_literal_values(cls, field, arg, (value,))
                 return
 
         for arg in args:
             try:
-                _check_types(arg_name, arg, value, glbs, lcls)
+                _check_types(cls, field, arg, value, glbs, lcls)
                 return
-            except TypeError:
+            except TypingError:
                 pass
 
-        raise TypeError(
-            f"Argument `{arg_name}` expected instance of {', '.join(map(str, args))}, not {type(value).__name__}."
+        raise TypingError(
+            cls,
+            field,
+            value,
+            message="expected instance of {valids}, not {field_value_type}.",
+            valids=", ".join(map(str, args)),
         )
 
     elif origin is list:
         if not isinstance(value, list):
-            raise TypeError(f"Argument `{arg_name}` expected instance of list, not {type(value).__name__}.")
+            raise TypingError(cls, field, value, message="expected instance of list, not {field_value_type}.")
 
         for val in value:
-            _check_types(arg_name, get_args(_type)[0], val, glbs, lcls)
+            _check_types(cls, field, get_args(_type)[0], val, glbs, lcls)
 
     elif origin is dict:
         if not isinstance(value, dict):
-            raise TypeError(f"Argument `{arg_name}` expected instance of dict, not {type(value).__name__}.")
+            raise TypingError(cls, field, value, message="expected instance of dict, not {field_value_type}.")
 
         for val in value.values():
-            _check_types(arg_name, get_args(_type)[1], val, glbs, lcls)
+            _check_types(cls, field, get_args(_type)[1], val, glbs, lcls)
 
     elif origin is tuple:
         if not isinstance(value, tuple):
-            raise TypeError(f"Argument `{arg_name}` expected instance of tuple, not {type(value).__name__}.")
+            raise TypingError(cls, field, value, message="expected instance of tuple, not {field_value_type}.")
 
         for arg, val in zip(get_args(_type), value):
-            _check_types(arg_name, arg, val, glbs, lcls)
+            _check_types(cls, field, arg, val, glbs, lcls)
 
     elif not isinstance(value, _type):
-        raise TypeError(f"Argument `{arg_name}` expected instance of {_type.__name__}, not {type(value).__name__}.")
+        raise TypingError(cls, field, value, message="expected instance of {field_type}, not {field_value_type}.")
 
     return
 

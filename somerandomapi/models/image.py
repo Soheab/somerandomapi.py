@@ -1,13 +1,11 @@
 from __future__ import annotations
 
-from io import BytesIO
-from typing import Literal, Optional, overload, TYPE_CHECKING, Union
+import io
+from typing import Any, Literal, Optional, overload, Protocol, TYPE_CHECKING, Union
 
 
 if TYPE_CHECKING:
-    from io import BufferedIOBase
     from os import PathLike
-    from typing import Any, Protocol
 
     from typing_extensions import Self
 
@@ -16,7 +14,7 @@ if TYPE_CHECKING:
     class FileLike(Protocol):
         def __call__(
             self,
-            fp: Union[str, bytes, PathLike[Any], BufferedIOBase],
+            fp: Union[str, bytes, PathLike[Any], io.BufferedIOBase],
             filename: Optional[str] = None,
             **kwargs: Any,
         ) -> Self:
@@ -27,13 +25,7 @@ __all__ = ("Image",)
 
 
 class Image:
-    """Represents a class for all image endpoints.
-
-    attributes
-    ----------
-    url: :class:`str`
-        The image URL.
-    """
+    """Represents a class for all image endpoints."""
 
     __slots__ = ("_url", "_http")
 
@@ -48,7 +40,7 @@ class Image:
         return self
 
     def __str__(self) -> str:
-        return self._url
+        return getattr(self, "_url", "")
 
     def __repr__(self) -> str:
         return f"<Image url={self.url!r}>"
@@ -59,7 +51,7 @@ class Image:
         return self._url
 
     @overload
-    async def read(self, bytesio: Literal[True] = ...) -> BytesIO:
+    async def read(self, bytesio: Literal[True] = ...) -> io.BytesIO:
         ...
 
     @overload
@@ -67,10 +59,10 @@ class Image:
         ...
 
     @overload
-    async def read(self, bytesio: bool = ...) -> Union[bytes, BytesIO]:
+    async def read(self, bytesio: bool = ...) -> Union[bytes, io.BytesIO]:
         ...
 
-    async def read(self, bytesio: bool = True) -> Union[bytes, BytesIO]:
+    async def read(self, bytesio: bool = True) -> Union[bytes, io.BytesIO]:
         """Returns the image data.
 
         Parameters
@@ -87,14 +79,14 @@ class Image:
         if not bytesio:
             return data
 
-        return BytesIO(data)
+        return io.BytesIO(data)
 
     async def file(self, cls: FileLike, filename: str = "image.png", **kwargs) -> FileLike:
         """Converts the image to a file-like object.
 
         Parameters
         ----------
-        cls: Any
+        cls: ``FileLike``
             The file-like object to convert the image to.
             E,g, `discord.File` (discord.py)
         filename: str
@@ -102,7 +94,7 @@ class Image:
 
         Returns
         -------
-        Any
+        ``FileLike``
             An instance of the file-like object.
         """
         return cls(await self.read(), filename=filename, **kwargs)

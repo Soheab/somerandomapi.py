@@ -1,28 +1,29 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING
+from typing import Any, TYPE_CHECKING
 
 from ..internals.endpoints import Others as OthersEndpoint
 from .abc import BaseModel
 
 
-if TYPE_CHECKING:
-    from ..types.others import LyricsLinks as LyricsLinksPayload
-
 __all__ = ("Lyrics", "LyricsLinks")
 
 
-@dataclass
-class LyricsLinks(BaseModel):
+class LyricsLinks:
     """Represents the links of a lyrics.
 
-    This class is not meant to be instantiated by the user. Instead, access it through the `links` attribute of the `Client` class.
+    This class is not meant to be instantiated by the user. Instead, access it through the :attr:`Lyrics.links` attribute of the :class:`.clients.client.Client` class.
+
+    Attributes
+    ----------
+    genius: :class:`str`
+        The genius link.
     """
 
-    data: LyricsLinksPayload
-    genius: str
-    """The Genius link of the lyrics."""
+    def __init__(self, data: dict[str, Any]) -> None:
+        self.data: dict[str, Any] = data  # type: ignore
+        self.genius: str = data["genius"]
 
 
 @dataclass
@@ -35,22 +36,21 @@ class Lyrics(BaseModel):
     lyrics: str
     """The lyrics of the song."""
 
-    _thumbnail: LyricsLinksPayload = field(repr=False)
-    _links: LyricsLinksPayload = field(repr=False)
+    _thumbnail: dict[str, Any] = field(repr=False)
+    _links: dict[str, Any] = field(repr=False)
 
     if TYPE_CHECKING:
 
         @classmethod
         def from_dict(
-            cls, *, title: str, author: str, lyrics: str, thumbnail: LyricsLinksPayload, links: LyricsLinksPayload
-        ):
+            cls, *, title: str, author: str, lyrics: str, thumbnail: dict[str, Any], links: dict[str, Any]
+        ) -> "Lyrics":
             ...
 
     @property
     def thumbnail(self) -> LyricsLinks:
         """The thumbnail of the lyrics."""
         return LyricsLinks(
-            genius=self._thumbnail["genius"],
             data=self._thumbnail,
         )
 
@@ -58,6 +58,5 @@ class Lyrics(BaseModel):
     def links(self) -> LyricsLinks:
         """The links of the lyrics."""
         return LyricsLinks(
-            genius=self._thumbnail["genius"],
             data=self._thumbnail,
         )
