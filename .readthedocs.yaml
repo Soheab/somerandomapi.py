@@ -15,8 +15,6 @@ python:
     - method: pip
       path: .
       extra_requirements:
-        - sphinx_rtd_theme
-        - sphinx-autodoc-typehints
-        - enum-tools[sphinx]
+        docs
 
   

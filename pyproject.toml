@@ -1,9 +1,6 @@
 # credits: https://github.com/Rapptz/discord.py/blob/1395d3b4954cf13e6f0eedbc356ac46fc737b6d7/pyproject.toml
 # and https://setuptools.pypa.io/en/latest/userguide/pyproject_config.html
-
-[build-system]
-requires = ["setuptools", "setuptools-scm"]
-build-backend = "setuptools.build_meta"
+# and https://github.com/revoltchat/revolt.py/blob/76364572f1309a44bfd0e87f813c702b4081c1c3/pyproject.toml
 
 [project]
 name = "somerandomapi"
@@ -36,6 +33,15 @@ dependencies = [
     "aiohttp>=3.8.0,<4.0.0",
 ]
 dynamic = ["version", "readme", "description"]
+
+[project.optional-dependencies]
+docs = [
+    "Sphinx=>6.1.*,<=7.0.*",
+    "sphinx_rtd_theme=>1.2.*,<=2.0.*",
+    "sphinx-autodoc-typehints=>1.22.*,<=2.0.*",
+    "enum-tools[sphinx]=>0.9.*,<=1.0.*",
+]
+
 
 [tool.setuptools]
 packages = [
