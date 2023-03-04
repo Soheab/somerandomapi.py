@@ -17,13 +17,13 @@ from ..models.encoding import EncodeResult
 from ..models.lyrics import Lyrics
 from ..models.rgb import RGB
 from ..models.welcome.free import WelcomeFree
+from .chatbot import Chatbot
 
 
 if TYPE_CHECKING:
     from .animal import AnimalClient
     from .animu import AnimuClient
     from .canvas import CanvasClient
-    from .chatbot import Chatbot
     from .pokemon import PokemonClient
     from .premium import PremiumClient
 
