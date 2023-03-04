@@ -83,23 +83,10 @@ class HTTPClient:
 
     def __init__(
         self,
-        key: Optional[Union[tuple[Literal[0, 1, 2, 3], str], APIKey]],
+        key: Optional[tuple[Literal[0, 1, 2, 3], str]],
         session: Optional[aiohttp.ClientSession] = None,
     ) -> None:
-        self._key: Optional[APIKey] = None
-        if key is not None:
-            if isinstance(key, APIKey):
-                self._key = key
-            else:
-                API_KEY_ERROR = "'key' must be a tuple of length 2 (key_tier, key)"
-                if not isinstance(key, tuple) or len(key) != 2:
-                    raise TypeError(API_KEY_ERROR)
-
-                if not isinstance(key[0], int) or key[0] not in (0, 1, 2, 3):
-                    raise TypeError(f"first element of 'key' must be an integer between 0 and 3, not {key[0]}")
-
-                self._key = APIKey(*key)
-
+        self._key: Optional[APIKey] = APIKey(*key) if key else None
         self._animal: AnimalClient = AnimalClient(self)
         self._animu: AnimuClient = AnimuClient(self)
         self._canvas: CanvasClient = CanvasClient(self)
@@ -111,7 +98,7 @@ class HTTPClient:
         self._session: Optional[aiohttp.ClientSession] = session
 
     async def initiate_session(self) -> None:
-        if not self._session:
+        if not self._session or self._session.closed:
             self._session = aiohttp.ClientSession()
 
     ImageEndpoints = Union[
@@ -126,16 +113,16 @@ class HTTPClient:
         "Literal[WelcomeImagesEndpoint.WELCOME]",
     ]
 
+    # isort: off
+    # fmt: off
     # all Image
     @overload
     async def request(self, endpoint: ImageEndpoints, /, **parameters: Any) -> Image:
         ...
-
     # animu
     @overload
     async def request(self, endpoint: Literal[AnimuEndpoint.QUOTE], /, **parameters: Any) -> AnimuQuotePayload:
         ...
-
     @overload
     async def request(
         self,
@@ -144,30 +131,23 @@ class HTTPClient:
         **parameters: Any,
     ) -> AnimuPayload:
         ...
-
     # animals
     @overload
     async def request(self, endpoint: AnimalEndpoint, /, **parameters: Any) -> AnimalPayload:
         ...
-
     @overload
     async def request(self, endpoint: ImgEndpoint, /, **parameters: Any) -> ImgPayload:
         ...
-
     @overload
     async def request(self, endpoint: FactsEndpoint, /, **parameters: Any) -> FactPayload:
         ...
-
     # canvas
-
     @overload
     async def request(self, endpoint: CanvasOverlay, /, **parameters: Any) -> Image:
         ...
-
     @overload
     async def request(self, endpoint: CanvasFilter, /, **parameters: Any) -> Image:
         ...
-
     @overload
     async def request(
         self,
@@ -182,90 +162,74 @@ class HTTPClient:
         **parameters: Any,
     ) -> Image:
         ...
-
     @overload
     async def request(self, endpoint: Literal[CanvasMisc.HEX], /, **parameters: Any) -> HexPayload:
         ...
-
     @overload
     async def request(self, endpoint: Literal[CanvasMisc.RGB], /, **parameters: Any) -> RGBPayload:
         ...
-
     # others
     @overload
     async def request(self, endpoint: Literal[OthersEndpoint.JOKE], /, **parameters: Any) -> JokePayload:
         ...
-
     @overload
     async def request(self, endpoint: Literal[OthersEndpoint.LYRICS], /, **parameters: Any) -> LyricsPayload:
         ...
-
     @overload
     async def request(self, endpoint: Literal[OthersEndpoint.BOTTOKEN], /, **parameters: Any) -> BotTokenPayload:
         ...
-
     @overload
     async def request(self, endpoint: Literal[OthersEndpoint.BASE64], /, **parameters: Any) -> Base64Payload:
         ...
-
     @overload
     async def request(self, endpoint: Literal[OthersEndpoint.BINARY], /, **parameters: Any) -> BinaryPayload:
         ...
-
     @overload
     async def request(self, endpoint: Literal[OthersEndpoint.DICTIONARY], /, **parameters: Any) -> DictionaryPayload:
         ...
-
     @overload
     async def request(
         self, endpoint: OthersEndpoint, /, **parameters: Any
     ) -> Union[JokePayload, LyricsPayload, BotTokenPayload, Base64Payload, BinaryPayload, DictionaryPayload]:
         ...
-
     # chatbot
     @overload
     async def request(self, endpoint: Literal[ChatbotEndpoint.CHATBOT], /, **parameters: Any) -> ChatbotPayload:
         ...
-
     # pokemon
     @overload
     async def request(
         self, endpoint: Literal[PokemonEndpoint.ABILITIES], /, **parameters: Any
     ) -> PokemonAbilityPayload:
         ...
-
     @overload
     async def request(self, endpoint: Literal[PokemonEndpoint.MOVES], /, **parameters: Any) -> PokemonMovePayload:
         ...
-
     @overload
     async def request(self, endpoint: Literal[PokemonEndpoint.ITEMS], /, **parameters: Any) -> PokemonItemPayload:
         ...
-
     @overload
     async def request(self, endpoint: Literal[PokemonEndpoint.POKEDEX], /, **parameters: Any) -> PokeDexPayload:
         ...
-
     @overload
     async def request(
         self, endpoint: PokemonEndpoint, /, **parameters: Any
     ) -> Union[PokeDexPayload, PokemonAbilityPayload, PokemonMovePayload, PokemonItemPayload]:
         ...
-
     # welcome
     @overload
     async def request(self, endpoint: Literal[WelcomeImagesEndpoint.WELCOME], /, **parameters: Any) -> Image:
         ...
-
     # premium
     @overload
     async def request(self, endpoint: PremiumEndpoint, /, **parameters: Any) -> Image:
         ...
-
     # org
     @overload
     async def request(self, endpoint: BaseEndpoint, /, **parameters: Any) -> Any:
         ...
+    # fmt: on
+    # isort: on
 
     async def request(self, enum: BaseEndpoint, /, *, pre_url: Optional[str] = None, **parameters: Any) -> Any:
         endpoint: Endpoint = enum.value
@@ -285,9 +249,7 @@ class HTTPClient:
         if not self._session:
             raise RuntimeError("Session is not initialized. This should never happen.")
 
-        print("requesting", full_url)
         async with self._session.get(full_url) as response:
-            print("response", response.status, response.content_type, response.headers.get("content-type"), "end")
             if not response.content_type.startswith("image/"):
                 data = await json_or_text(response)
             else:
@@ -331,7 +293,6 @@ class HTTPClient:
         if endpoint.parameters:
             endpoint._set_param_values(self._key, **data)
 
-        print("_welcome_card", self.BASE_URL, enum.base(), template, background, endpoint.parameters)
         if not template:
             raise ValueError("Template is required for welcome card.")
 
@@ -343,7 +304,6 @@ class HTTPClient:
             params = {name: param.value for name, param in endpoint.parameters.items() if param.value is not None}
             url += "?" + urlencode(params, quote_via=quote_plus)
 
-        print("_welcome_card url", url)
         return await self.request(enum, pre_url=url)
 
     async def close(self) -> None:
