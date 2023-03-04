@@ -3,7 +3,7 @@ A maintained Python wrapper for the Somerandomapi API.
 
 ----
 
-**Documentation**: https://somerandomapi.py.readthedocs.io/en/latest/ \
+**Documentation**: https://somerandomapipy.readthedocs.io/ \
 **Examples**: https://github.com/Soheab/somerandomapi.py/blob/main/examples \
 **PyPI**: https://pypi.org/project/somerandomapi.py/
 
