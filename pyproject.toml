@@ -1,9 +1,6 @@
-# credits: https://github.com/Rapptz/discord.py/blob/1395d3b4954cf13e6f0eedbc356ac46fc737b6d7/pyproject.toml
-# and https://setuptools.pypa.io/en/latest/userguide/pyproject_config.html
-# and https://github.com/revoltchat/revolt.py/blob/76364572f1309a44bfd0e87f813c702b4081c1c3/pyproject.toml
-
 [project]
-name = "somerandomapi"
+name = "somerandomapi.py"
+description = "A maintained wrapper for the somerandomapi API."
 authors = [
     {name = "Soheab_"},
 ]
@@ -32,7 +29,7 @@ license = {file = "LICENSE"}
 dependencies = [
     "aiohttp>=3.8.0,<4.0.0",
 ]
-dynamic = ["version", "readme", "description"]
+dynamic = ["version", "readme"]
 
 [project.optional-dependencies]
 docs = [
@@ -55,15 +52,14 @@ packages = [
 ]
 
 [project.urls]
-homepage = "https://github.com/Soheab/somerandomapi"
-documentation ="https://github.com/Soheab/somerandomapi"
-repository = "https://github.com/Soheab/somerandomapi.git"
+homepage = "https://github.com/Soheab/somerandomapi.py"
+documentation ="https://somerandomapipy.readthedocs.io/"
+repository = "https://github.com/Soheab/somerandomapi.py"
 
 
 [tool.setuptools.dynamic]
 version = {attr = "somerandomapi.__version__"}
-description = {file = "somerandomapi.__init__"}
-readme = {file = ["README"], content-type = "text/markdown"}
+readme = {file = ["README.md"], content-type = "text/markdown"}
 
 [tool.pyright]
 include = [
