@@ -29,7 +29,7 @@ Simple Examples
 
    # define a function to get a random joke
    async def get_random_joke():
-       joke = await sr_api.get_joke()
+       joke = await sr_api.random_joke()
        # print the joke
        print(joke)
 
