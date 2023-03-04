@@ -38,6 +38,14 @@ Simple Examples
 
 More Examples in the `Examples <https://github.com/Soheab/somerandomapi.py/blob/main/examples>`_ folder on the respository.
 
+Links
+------
+
+**API**: https://somerandomapi.com/
+**API Discord**: https://discord.gg/tTUMWFd
+
+**Library Discord**: https://discord.gg/yCzcfju
+
 .. toctree::
    :caption: API Reference
    :maxdepth: 2
