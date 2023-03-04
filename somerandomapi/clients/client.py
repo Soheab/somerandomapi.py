@@ -40,8 +40,9 @@ class Client:
         The session to use for requests. If not provided, a new session will be created.
 
     key: Optional[Tuple[Literal[0, 1, 2, 3], :class:`str`]]
-        The API key to use for requests as a tuple of tier and key.
+        The API key to use for requests as a tuple of tier and key or just the key.
         E,g, ``(0, "key")`` for tier 0 (this can also be used when you don't know the tier)
+        OR ``"key"`` which will be treated as tier 0.
 
         A key can also be passed per-request, in which case it will override the key passed to the client.
 
@@ -52,9 +53,31 @@ class Client:
     __slots__: tuple[str, ...] = ("_http", "__chatbot")
 
     def __init__(
-        self, key: Optional[tuple[Literal[0, 1, 2, 3], str]], *, session: Optional[aiohttp.ClientSession] = None
+        self,
+        key: Optional[Union[tuple[Literal[0, 1, 2, 3], str], str]] = None,
+        *,
+        session: Optional[aiohttp.ClientSession] = None,
     ) -> None:
-        self._http = HTTPClient(key, session)
+        _key = None
+        if key is not None:
+            if not isinstance(key, (tuple, str)):
+                raise TypeError(f"Expected 'key' to be a tuple or a string, not {type(key)}")
+
+            if isinstance(key, tuple):
+                if len(key) != 2:
+                    raise ValueError(f"Expected 'key' to be a tuple of length 2, not {len(key)}")
+
+                if not isinstance(key[0], int) and not isinstance(key[1], str):
+                    raise TypeError(f"Expected 'key' to be a tuple of (int, str), not ({type(key[0])}, {type(key[1])})")
+
+                if key[0] not in (0, 1, 2, 3):
+                    raise ValueError(f"Expected first element of 'key' to be 0, 1, 2 or 3, not {key[0]}")
+
+                _key = key
+            else:
+                _key = (0, key)
+
+        self._http = HTTPClient(_key, session)
         self.__chatbot: Optional[Chatbot] = None
 
     async def __aenter__(self) -> Client:
