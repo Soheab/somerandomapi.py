@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-from typing import Any, Callable, Optional, TYPE_CHECKING
+from typing import Any, Callable, Literal, Optional, TYPE_CHECKING
 from urllib.parse import quote_plus, urlencode
 
-from ..enums import BaseEnum
+from .. import enums
 
 
 if TYPE_CHECKING:
@@ -24,7 +24,7 @@ _TIER_ERROR_PARAMETER = (
 )
 
 
-class BaseEndpoint(BaseEnum):
+class BaseEndpoint(enums.BaseEnum):
     @classmethod
     def ratelimit(cls) -> tuple[int, int]:
         raise NotImplementedError
@@ -34,7 +34,7 @@ class BaseEndpoint(BaseEnum):
         raise NotImplementedError
 
     @classmethod
-    def from_enum(cls, enum: BaseEnum) -> Self:
+    def from_enum(cls, enum: enums.BaseEnum) -> Self:
         try:
             val = enum.value.replace("-", "_").upper()
             return getattr(cls, val)
@@ -160,6 +160,11 @@ EndpointWithAvatarParam: Callable[[str], Endpoint] = lambda path: Endpoint(
 
 
 class Animu(BaseEndpoint):
+    if TYPE_CHECKING:
+        @classmethod
+        def from_enum(cls, enum: Literal[None]) -> None:
+            ...
+
     @classmethod
     def base(cls):
         return "animu/"
@@ -172,12 +177,37 @@ class Animu(BaseEndpoint):
 
 
 class BaseCanvas(BaseEndpoint):
+    if TYPE_CHECKING:
+        @classmethod
+        def from_enum(cls, enum: Literal[None]) -> None:
+            ...
+
     @classmethod
     def base(cls):
         return "canvas/"
 
 
 class CanvasFilter(BaseCanvas):
+    if TYPE_CHECKING:
+        @classmethod
+        def from_enum(
+            cls,
+            enum: Literal[
+                enums.CanvasFilter.BLURPLE,
+                enums.CanvasFilter.BLURPLE_2,
+                enums.CanvasFilter.BRIGHTNESS,
+                enums.CanvasFilter.COLOR,
+                enums.CanvasFilter.BLUE,
+                enums.CanvasFilter.GREEN,
+                enums.CanvasFilter.RED,
+                enums.CanvasFilter.SEPIA,
+                enums.CanvasFilter.GREYSCALE,
+                enums.CanvasFilter.INVERT,
+                enums.CanvasFilter.INVERT_GREYSCALE,
+                enums.CanvasFilter.THRESHOLD,
+        ]) -> Self:
+            ...
+
     @classmethod
     def base(cls):
         return super().base() + "filter/"
@@ -209,6 +239,11 @@ class CanvasFilter(BaseCanvas):
 
 
 class CanvasMisc(BaseCanvas):
+    if TYPE_CHECKING:
+        @classmethod
+        def from_enum(cls, enum: Literal[enums.CanvasFilter.BLUR, enums.CanvasFilter.JPG, enums.CanvasFilter.PIXELATE]) -> Self:
+            ...
+
     @classmethod
     def base(cls):
         return super().base() + "misc/"
@@ -268,6 +303,11 @@ class CanvasMisc(BaseCanvas):
 
 
 class CanvasOverlay(BaseCanvas):
+    if TYPE_CHECKING:
+        @classmethod
+        def from_enum(cls, enum: enums.CanvasOverlay) -> Self:
+            ...
+
     @classmethod
     def base(cls):
         return super().base() + "overlay/"
@@ -282,6 +322,11 @@ class CanvasOverlay(BaseCanvas):
 
 
 class Facts(BaseEndpoint):
+    if TYPE_CHECKING:
+        @classmethod
+        def from_enum(cls, enum: enums.FactAnimal) -> Self:
+            ...
+
     @classmethod
     def base(cls):
         return "facts/"
@@ -296,6 +341,11 @@ class Facts(BaseEndpoint):
 
 
 class Animal(BaseEndpoint):
+    if TYPE_CHECKING:
+        @classmethod
+        def from_enum(cls, enum: enums.Animal) -> Self:
+            ...
+
     @classmethod
     def base(cls):
         return "animal/"
@@ -314,6 +364,11 @@ class Animal(BaseEndpoint):
 
 
 class Img(BaseEndpoint):
+    if TYPE_CHECKING:
+        @classmethod
+        def from_enum(cls, enum: enums.ImgAnimal) -> Self:
+            ...
+
     @classmethod
     def base(cls):
         return "img/"
@@ -331,6 +386,11 @@ class Img(BaseEndpoint):
 
 
 class Others(BaseEndpoint):
+    if TYPE_CHECKING:
+        @classmethod
+        def from_enum(cls, enum: Literal[None]) -> None:
+            ...
+
     @classmethod
     def base(cls):
         return "others/"
@@ -352,6 +412,11 @@ class Others(BaseEndpoint):
 
 
 class Pokemon(BaseEndpoint):
+    if TYPE_CHECKING:
+        @classmethod
+        def from_enum(cls, enum: Literal[None]) -> None:
+            ...
+
     @classmethod
     def base(cls):
         return "pokemon/"
@@ -363,6 +428,11 @@ class Pokemon(BaseEndpoint):
 
 
 class Premium(BaseEndpoint):
+    if TYPE_CHECKING:
+        @classmethod
+        def from_enum(cls, enum: Literal[None]) -> None:
+            ...
+
     @classmethod
     def base(cls):
         return "premium/"
@@ -412,6 +482,11 @@ class Premium(BaseEndpoint):
 
 
 class Chatbot(BaseEndpoint):
+    if TYPE_CHECKING:
+        @classmethod
+        def from_enum(cls, enum: Literal[None]) -> None:
+            ...
+
     @classmethod
     def base(cls):
         return ""
@@ -427,6 +502,11 @@ class Chatbot(BaseEndpoint):
 
 
 class WelcomeImages(BaseEndpoint):
+    if TYPE_CHECKING:
+        @classmethod
+        def from_enum(cls, enum: Literal[None]) -> None:
+            ...
+
     @classmethod
     def base(cls):
         return "welcome/img/"

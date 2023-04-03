@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Union
 
+from .. import utils
 from ..enums import Animal as AnimalEnum, FactAnimal as AnimalFactsEnum, ImgAnimal as AnimalImgEnum
 from ..internals.endpoints import Animal as AnimalEndpoint, Facts as AnimalFactsEndpoint, Img as AnimalImgEndpoint
 from ..models.animal_fact import AnimalImageFact
@@ -49,7 +50,7 @@ class AnimalClient:
                     f"'animal' must be an instance of `Animal` or one of {', '.join(valid_animals)}, not {animal!r}"
                 )
 
-            _animal = AnimalEnum(animal.upper())
+            _animal = AnimalEnum[animal.lower()]
 
         _endpoint: AnimalEndpoint = AnimalEndpoint.from_enum(_animal)
         response = await self.__http.request(_endpoint)
@@ -77,7 +78,7 @@ class AnimalClient:
                     f"'animal' must be an instance of `ImgAnimal` or one of {', '.join(valid_animals)}, not {animal!r}"
                 )
 
-            _animal = AnimalImgEnum(animal.upper())
+            _animal = AnimalImgEnum(animal.lower())
 
         _endpoint: AnimalImgEndpoint = AnimalImgEndpoint.from_enum(_animal)
         response = await self.__http.request(_endpoint)
@@ -105,7 +106,7 @@ class AnimalClient:
                     f"'animal' must be an instance of `FactAnimal` or one of {', '.join(valid_animals)}, not {animal!r}"
                 )
 
-            _animal = AnimalFactsEnum(animal.upper())
+            _animal = AnimalFactsEnum(animal.lower())
 
         _endpoint: AnimalFactsEndpoint = AnimalFactsEndpoint.from_enum(_animal)
         response = await self.__http.request(_endpoint)

@@ -9,7 +9,7 @@ from ..internals.endpoints import (
     CanvasFilter as CanvasFilterEndpoint,
     CanvasMisc as CanvasMiscEndpoint,
     CanvasOverlay as CanvasOverlayEndpoint,
-)
+    )
 from ..models.image import Image
 from ..models.namecard import GenshinNamecard
 from ..models.tweet import Tweet
@@ -70,14 +70,15 @@ class CanvasClient:
         # because these require different parameters, we need to check and deny them here
         if filter in (_enum.BRIGHTNESS, _enum.COLOR, _enum.THRESHOLD):
             raise ValueError(
-                f"Filter {filter} cannot be used with this method. Use `filter_{filter.name.lower()}` instead."
+                f"Filter {filter} cannot be used with this method. Use `.filter_{filter.name.lower()}()` instead."
             )
 
-        _endpoint_cls = (
-            CanvasFilterEndpoint if filter not in (_enum.BLUR, _enum.JPG, _enum.PIXELATE) else CanvasMiscEndpoint
-        )
 
-        _endpoint = _endpoint_cls.from_enum(filter)
+        if filter in (_enum.BLUR, _enum.JPG, _enum.PIXELATE):
+            _endpoint = CanvasMiscEndpoint.from_enum(filter)
+        else:
+            _endpoint = CanvasFilterEndpoint.from_enum(filter)
+
         return await self.__http.request(_endpoint, avatar=avatar_url)
 
     async def filter_brightness(self, avatar_url: str, brightness: Optional[int] = None) -> Image:
