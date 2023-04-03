@@ -50,7 +50,7 @@ class AnimalClient:
                     f"'animal' must be an instance of `Animal` or one of {', '.join(valid_animals)}, not {animal!r}"
                 )
 
-            _animal = AnimalEnum[animal.lower()]
+            _animal = AnimalEnum(animal.lower())
 
         _endpoint: AnimalEndpoint = AnimalEndpoint.from_enum(_animal)
         response = await self.__http.request(_endpoint)
