@@ -41,7 +41,7 @@ More Examples in the `Examples <https://github.com/Soheab/somerandomapi.py/blob/
 Links
 ------
 
-**API**: https://somerandomapi.com/
+**API**: https://some-random-api.ml/
 **API Discord**: https://discord.gg/tTUMWFd
 
 **Library Discord**: https://discord.gg/yCzcfju

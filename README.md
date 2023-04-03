@@ -10,7 +10,7 @@ A maintained Python wrapper for the Somerandomapi API.
 **Installation**: `pip install somerandomapi.py`
 
 
-**API**: https://somerandomapi.com/ \
+**API**: https://some-random-api.ml/ \
 **API Discord**: https://discord.gg/tTUMWFd
 
 **Library Discord**: https://discord.gg/yCzcfju
