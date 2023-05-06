@@ -72,7 +72,7 @@ intersphinx_mapping = {
 }
 
 extlinks = {
-    "apidocs": ("https://some-random-api.ml/docs/%s", None),
+    "apidocs": ("https://some-random-api.com/docs/%s", None),
 }
 
 

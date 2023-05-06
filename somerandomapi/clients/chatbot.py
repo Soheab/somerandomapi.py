@@ -199,7 +199,7 @@ class Chatbot:
         - 3: 60 requests per 60 seconds
 
     _handle_ratelimit: :class:`bool`
-        https://some-random-api.ml/docs/welcome/ratelimits#chatbot
+        https://some-random-api.com/docs/welcome/ratelimits#chatbot
         Whether to handle the ratelimit automatically. This is subject to change and should not be relied on.
         If this is set to ``True``, you must provide either a client or a key and a key_tier.
     """

@@ -62,7 +62,6 @@ if TYPE_CHECKING:
 __all__ = ()
 
 
-# source: https://github.com/Rapptz/discord.py/blob/master/discord/http.py
 async def json_or_text(response: aiohttp.ClientResponse) -> Union[dict[str, Any], str]:
     text = await response.text(encoding="utf-8")
     if response.content_type == "application/json":
