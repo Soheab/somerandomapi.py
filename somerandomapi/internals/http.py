@@ -76,7 +76,7 @@ class APIKey(NamedTuple):
 
 
 class HTTPClient:
-    BASE_URL: ClassVar[str] = "https://some-random-api.ml"
+    BASE_URL: ClassVar[str] = "https://some-random-api.com"
 
     __slots__ = ("_animal", "_animu", "_canvas", "_pokemon", "_premium", "_key", "_session", "__chatbot")
 
