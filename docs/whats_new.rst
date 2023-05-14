@@ -8,6 +8,13 @@ Changelog
 This page keeps a detailed human friendly rendering of what's new and changed
 in specific versions.
 
+v0.0.4
+-------
+
+- Urgent fix for the base URL for requests to the API. The base URL changed from ``https://some-random-api.ml/`` to ``https://some-random-api.com/``.
+
+**Full Changelog**: https://github.com/Soheab/somerandomapi.py/compare/0.0.3...0.0.3
+
 v0.0.3
 -------
 
