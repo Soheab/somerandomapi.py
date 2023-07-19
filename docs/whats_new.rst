@@ -8,12 +8,20 @@ Changelog
 This page keeps a detailed human friendly rendering of what's new and changed
 in specific versions.
 
+v0.0.5
+------
+
+- Fix exceptions not being accessed from main namespace (``somerandomapi...``).
+- Fix link to API in README
+
+**Full Changelog**: https://github.com/Soheab/somerandomapi.py/compare/0.0.4...0.0.5
+
 v0.0.4
 -------
 
 - Urgent fix for the base URL for requests to the API. The base URL changed from ``https://some-random-api.ml/`` to ``https://some-random-api.com/``.
 
-**Full Changelog**: https://github.com/Soheab/somerandomapi.py/compare/0.0.3...0.0.3
+**Full Changelog**: https://github.com/Soheab/somerandomapi.py/compare/0.0.3...0.0.4
 
 v0.0.3
 -------
