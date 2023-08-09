@@ -373,10 +373,10 @@ class Client:
             ("background", background, True),
             ("avatar_url", avatar_url, True),
             ("username", username, True),
-            ("discriminator", discriminator, True),
             ("server_name", server_name, True),
             ("member_count", member_count, True),
             ("text_color", text_color, True),
+            ("discriminator", discriminator, False),
             ("key", key, False),
             ("font", font, False),
         )

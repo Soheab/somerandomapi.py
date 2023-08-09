@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Literal, Optional, TYPE_CHECKING
+from typing import Literal, Optional, TYPE_CHECKING, Union
 
 from .. import utils as _utils
 from ..internals.endpoints import Premium as PremiumEndpoint
@@ -81,7 +81,7 @@ class PremiumClient:
         *,
         username: Optional[str] = None,
         avatar_url: Optional[str] = None,
-        discriminator: Optional[str] = None,
+        discriminator: Optional[Union[int, str]] = None,
         level: Optional[int] = None,
         current_xp: Optional[int] = None,
         needed_xp: Optional[int] = None,
@@ -102,8 +102,8 @@ class PremiumClient:
             The username. Max 32 characters. Required if `obj` is not passed.
         avatar_url: Optional[:class:`str`]
             The avatar URL. Required if `obj` is not passed.
-        discriminator: Optional[:class:`str`]
-            The discriminator. Required if `obj` is not passed.
+        discriminator: Optional[Union[:class:`int`, :class:`str`]]
+            The discriminator to use. Required if ``obj`` is not passed.
         level: Optional[:class:`int`]
             The level. Required if `obj` is not passed.
         current_xp: Optional[:class:`int`]
@@ -126,10 +126,10 @@ class PremiumClient:
         values = (
             ("username", username, True),
             ("avatar_url", avatar_url, True),
-            ("discriminator", discriminator, True),
             ("level", level, True),
             ("current_xp", current_xp, True),
             ("needed_xp", needed_xp, True),
+            ("discriminator", discriminator, False),
             ("key", key, False),
             ("background_url", background_url, False),
             ("background_color", background_color, False),
@@ -153,7 +153,7 @@ class PremiumClient:
         type: Optional[WelcomeType] = None,
         username: Optional[str] = None,
         avatar_url: Optional[str] = None,
-        discriminator: Optional[str] = None,
+        discriminator: Optional[Union[int, str]] = None,
         server_name: Optional[str] = None,
         member_count: Optional[int] = None,
         text_color: Optional[WelcomeTextColor] = None,
@@ -175,8 +175,8 @@ class PremiumClient:
             The username. Required if `obj` is not passed.
         avatar_url: Optional[:class:`str`]
             The avatar URL. Required if `obj` is not passed.
-        discriminator: Optional[:class:`str`]
-            The discriminator. Required if `obj` is not passed.
+        discriminator: Optional[Union[:class:`int`, :class:`str`]]
+            The discriminator to use. Required if ``obj`` is not passed.
         server_name: Optional[:class:`str`]
             The server name. Required if `obj` is not passed.
         member_count: Optional[:class:`int`]
@@ -195,10 +195,10 @@ class PremiumClient:
             ("background_url", background_url, True),
             ("avatar_url", avatar_url, True),
             ("username", username, True),
-            ("discriminator", discriminator, True),
             ("server_name", server_name, True),
             ("member_count", member_count, True),
             ("text_color", text_color, True),
+            ("discriminator", discriminator, False),
             ("key", key, False),
             ("font", font, False),
         )
