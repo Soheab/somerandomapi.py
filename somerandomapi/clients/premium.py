@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Literal, Optional, TYPE_CHECKING, Union
+from typing import Literal, Optional, TYPE_CHECKING
 
 from .. import utils as _utils
 from ..internals.endpoints import Premium as PremiumEndpoint
@@ -81,7 +81,7 @@ class PremiumClient:
         *,
         username: Optional[str] = None,
         avatar_url: Optional[str] = None,
-        discriminator: Optional[Union[int, str]] = None,
+        discriminator: Optional[int] = None,
         level: Optional[int] = None,
         current_xp: Optional[int] = None,
         needed_xp: Optional[int] = None,
@@ -102,8 +102,8 @@ class PremiumClient:
             The username. Max 32 characters. Required if `obj` is not passed.
         avatar_url: Optional[:class:`str`]
             The avatar URL. Required if `obj` is not passed.
-        discriminator: Optional[Union[:class:`int`, :class:`str`]]
-            The discriminator to use. Required if ``obj`` is not passed.
+        discriminator: Optional[:class:`int`]
+            The discriminator to use. Required if ``obj`` is not passed. 
         level: Optional[:class:`int`]
             The level. Required if `obj` is not passed.
         current_xp: Optional[:class:`int`]
@@ -153,7 +153,7 @@ class PremiumClient:
         type: Optional[WelcomeType] = None,
         username: Optional[str] = None,
         avatar_url: Optional[str] = None,
-        discriminator: Optional[Union[int, str]] = None,
+        discriminator: Optional[int] = None,
         server_name: Optional[str] = None,
         member_count: Optional[int] = None,
         text_color: Optional[WelcomeTextColor] = None,
@@ -175,8 +175,8 @@ class PremiumClient:
             The username. Required if `obj` is not passed.
         avatar_url: Optional[:class:`str`]
             The avatar URL. Required if `obj` is not passed.
-        discriminator: Optional[Union[:class:`int`, :class:`str`]]
-            The discriminator to use. Required if ``obj`` is not passed.
+        discriminator: Optional[:class:`int`]
+            The discriminator to use. Required if ``obj`` is not passed. 
         server_name: Optional[:class:`str`]
             The server name. Required if `obj` is not passed.
         member_count: Optional[:class:`int`]

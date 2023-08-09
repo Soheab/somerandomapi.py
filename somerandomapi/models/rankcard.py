@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Optional, TYPE_CHECKING, Union
+from typing import Optional, TYPE_CHECKING
 
 from .. import utils as _utils
 from ..internals.endpoints import Premium
@@ -25,7 +25,7 @@ class Rankcard(BaseImageModel):
     """The current XP of the user."""
     needed_xp: int = field(metadata={"alias_of": "nxp"})
     """The needed XP to level up."""
-    discriminator: Optional[Union[int, str]] = field(default=None, metadata={"range": [1, 4]})
+    discriminator: Optional[int] = field(default=None, metadata={"range": [1, 4]})
     """The discriminator of the user.
     
     Will be stripped if equal to 0
@@ -71,7 +71,7 @@ class Rankcard(BaseImageModel):
             level: int,
             cxp: int,
             nxp: int,
-            discriminator: Optional[Union[int, str]] = None,
+            discriminator: Optional[int] = None,
             key: Optional[str] = None,
             bg: Optional[str] = None,
             cbg: Optional[str] = None,

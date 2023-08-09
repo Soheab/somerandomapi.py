@@ -331,7 +331,7 @@ class Client:
         background: Optional[WelcomeBackground] = None,
         avatar_url: Optional[str] = None,
         username: Optional[str] = None,
-        discriminator: Optional[Union[int, str]] = None,
+        discriminator: Optional[int] = None,
         server_name: Optional[str] = None,
         member_count: Optional[int] = None,
         text_color: Optional[WelcomeTextColor] = None,
@@ -354,8 +354,8 @@ class Client:
             The avatar URL to use. Required if ``obj`` is not passed.
         username: Optional[:class:`str`]
             The username to use. Required if ``obj`` is not passed.
-        discriminator: Optional[Union[:class:`int`, :class:`str`]]
-            The discriminator to use. Required if ``obj`` is not passed.
+        discriminator: Optional[:class:`int`]
+            The discriminator to use. Required if ``obj`` is not passed. 
         server_name: Optional[:class:`str`]
             The server name to use. Required if ``obj`` is not passed.
         member_count: Optional[:class:`int`]

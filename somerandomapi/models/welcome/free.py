@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Literal, Optional, TYPE_CHECKING, Union
+from typing import Literal, Optional, TYPE_CHECKING
 
 from ...enums import WelcomeBackground, WelcomeTextColor, WelcomeType
 from ...internals.endpoints import WelcomeImages as WelcomeImagesEndpoint
@@ -33,7 +33,7 @@ class WelcomeFree(BaseImageModel):
     """The member count."""
     text_color: WelcomeTextColor = field(metadata={"alias_of": "textcolor"})
     """The text color."""
-    discriminator: Optional[Union[int, str]] = field(default=None, metadata={"range": [1, 4]})
+    discriminator: Optional[int] = field(default=None, metadata={"range": [1, 4]})
     """The discriminator of the user.
     
     Will be stripped if equal to 0
@@ -63,7 +63,7 @@ class WelcomeFree(BaseImageModel):
             guildName: str,
             memberCount: int,
             textcolor: WelcomeTextColors,
-            discriminator: Optional[Union[int, str]] = None,
+            discriminator: Optional[int] = None,
             key: Optional[str] = None,
             font: Optional[int] = None,
         ):
