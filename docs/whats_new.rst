@@ -8,6 +8,18 @@ Changelog
 This page keeps a detailed human friendly rendering of what's new and changed
 in specific versions.
 
+v0.0.6
+------
+
+- Make `discriminator` optional in relevant classes and methods:
+  - :meth:`.Client.welcome_image`
+  - :class:`.PremiumClient`
+  - :class:`.Rankcard`
+  - :class:`.WelcomeFree`
+  - :class:`WelcomePremium`
+
+**Full Changelog**: https://github.com/Soheab/somerandomapi.py/compare/0.0.5...0.0.6
+
 v0.0.5
 ------
 

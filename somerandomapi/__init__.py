@@ -10,6 +10,6 @@ from .errors import *
 from .models import *
 
 
-__version__ = "0.0.5a"
+__version__ = "0.0.6"
 __author__ = "Soheab"
 __license__ = "MPL-2.0"
