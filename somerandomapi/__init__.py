@@ -6,8 +6,8 @@ A maintained Python wrapper for the Somerandomapi API.
 
 from .clients import *
 from .enums import *
-from .models import *
 from .errors import *
+from .models import *
 
 
 __version__ = "0.0.5a"

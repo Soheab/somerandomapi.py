@@ -271,7 +271,7 @@ class Chatbot:
             client._Client__chatbot = self  # type: ignore
         else:
             self.__http = HTTPClient(None, session=session)
-        self.__request = partial(self.__http.request, self._endpoint, key=key)  # type: ignore
+        self.__request = partial(self.__http.request, self._endpoint, key=key)
 
         """
         if not self._handle_ratelimit:

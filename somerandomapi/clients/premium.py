@@ -103,7 +103,7 @@ class PremiumClient:
         avatar_url: Optional[:class:`str`]
             The avatar URL. Required if `obj` is not passed.
         discriminator: Optional[:class:`int`]
-            The discriminator to use. Required if ``obj`` is not passed. 
+            The discriminator to use. Required if ``obj`` is not passed.
         level: Optional[:class:`int`]
             The level. Required if `obj` is not passed.
         current_xp: Optional[:class:`int`]

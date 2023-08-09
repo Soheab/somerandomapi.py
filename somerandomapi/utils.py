@@ -22,12 +22,13 @@ def _try_enum(enum: Type[EnumT], input: Any) -> Optional[EnumT]:
         return None
 
     try:
-        return enum[input.upper()] # name
+        return enum[input.upper()]  # name
     except KeyError:
         try:
-            return enum(input.lower()) # value
+            return enum(input.lower())  # value
         except ValueError:
             return None
+
 
 def _gen_colour(numbers: Optional[int] = None) -> str:
     random_number = numbers or random.randint(0, 16777215)

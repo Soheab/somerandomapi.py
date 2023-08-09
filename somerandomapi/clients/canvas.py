@@ -9,7 +9,7 @@ from ..internals.endpoints import (
     CanvasFilter as CanvasFilterEndpoint,
     CanvasMisc as CanvasMiscEndpoint,
     CanvasOverlay as CanvasOverlayEndpoint,
-    )
+)
 from ..models.image import Image
 from ..models.namecard import GenshinNamecard
 from ..models.tweet import Tweet
@@ -72,7 +72,6 @@ class CanvasClient:
             raise ValueError(
                 f"Filter {filter} cannot be used with this method. Use `.filter_{filter.name.lower()}()` instead."
             )
-
 
         if filter in (_enum.BLUR, _enum.JPG, _enum.PIXELATE):
             _endpoint = CanvasMiscEndpoint.from_enum(filter)

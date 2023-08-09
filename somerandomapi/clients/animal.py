@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Union
 
-from .. import utils
 from ..enums import Animal as AnimalEnum, FactAnimal as AnimalFactsEnum, ImgAnimal as AnimalImgEnum
 from ..internals.endpoints import Animal as AnimalEndpoint, Facts as AnimalFactsEndpoint, Img as AnimalImgEndpoint
 from ..models.animal_fact import AnimalImageFact
