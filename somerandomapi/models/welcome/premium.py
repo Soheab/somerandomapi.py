@@ -24,14 +24,17 @@ class WelcomePremium(BaseImageModel):
     """The username of the user."""
     avatar_url: str = field(metadata={"alias_of": "avatar"})
     """The avatar URL of the user. Must be .png or .jpg."""
-    discriminator: int
-    """The discriminator of the user."""
     server_name: str = field(metadata={"alias_of": "guildName"})
     """The server name."""
     member_count: int = field(metadata={"alias_of": "memberCount"})
     """The member count."""
     text_color: WelcomeTextColor = field(metadata={"alias_of": "textcolor"})
     """The text color."""
+    discriminator: Optional[int] = field(default=None, metadata={"range": [1, 4]})
+    """The discriminator of the user.
+    
+    Will be stripped if equal to 0
+    """
     key: Optional[str] = field(default=None, repr=False)
     """The key. At least tier 2 is required. Use the free endpoint if you don't have a tier 2 key.
     
@@ -54,10 +57,10 @@ class WelcomePremium(BaseImageModel):
             type: Literal["join", "leave"],
             username: str,
             avatar: str,
-            discriminator: int,
             guildName: str,
             memberCount: int,
             textcolor: WelcomeTextColors,
+            discriminator: Optional[int] = None,
             key: Optional[str] = None,
             bg: Optional[str] = None,
             font: Optional[int] = None,

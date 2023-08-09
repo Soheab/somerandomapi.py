@@ -19,14 +19,17 @@ class Rankcard(BaseImageModel):
     """The username of the user. Max 32 characters."""
     avatar_url: str = field(metadata={"alias_of": "avatar"})
     """The avatar URL of the user. Must be .png or .jpg."""
-    discriminator: int = field(metadata={"length": 4})
-    """The discriminator of the user."""
     level: int
     """The current level of the user."""
     current_xp: int = field(metadata={"alias_of": "cxp"})
     """The current XP of the user."""
     needed_xp: int = field(metadata={"alias_of": "nxp"})
     """The needed XP to level up."""
+    discriminator: Optional[int] = field(default=None, metadata={"range": [1, 4]})
+    """The discriminator of the user.
+    
+    Will be stripped if equal to 0
+    """
     key: Optional[str] = None
     """The API key for the rank card. Not required if you have a key set in the client."""
     background_url: Optional[str] = field(default=None, metadata={"alias_of": "bg"})
@@ -65,10 +68,10 @@ class Rankcard(BaseImageModel):
             *,
             username: str,
             avatar: str,
-            discriminator: int,
             level: int,
             cxp: int,
             nxp: int,
+            discriminator: Optional[int] = None,
             key: Optional[str] = None,
             bg: Optional[str] = None,
             cbg: Optional[str] = None,
