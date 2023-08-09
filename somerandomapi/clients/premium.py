@@ -176,7 +176,7 @@ class PremiumClient:
         avatar_url: Optional[:class:`str`]
             The avatar URL. Required if `obj` is not passed.
         discriminator: Optional[:class:`int`]
-            The discriminator to use. Required if ``obj`` is not passed. 
+            The discriminator to use.
         server_name: Optional[:class:`str`]
             The server name. Required if `obj` is not passed.
         member_count: Optional[:class:`int`]
