@@ -254,6 +254,13 @@ class HTTPClient:
             else:
                 data = response
 
+            if isinstance(data, dict):
+                # sometimes the api returns a 200 with an error
+                if data.get("error"):
+                    # we should show the correct status code
+                    data["code"] = response.status
+                    raise BadRequest(enum, data)
+
             if response.status == 200:
                 if response.content_type.startswith("image/"):
                     return Image.construct(full_url, self)
