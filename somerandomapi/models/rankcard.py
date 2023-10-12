@@ -25,7 +25,7 @@ class Rankcard(BaseImageModel):
     """The current XP of the user."""
     needed_xp: int = field(metadata={"alias_of": "nxp"})
     """The needed XP to level up."""
-    discriminator: Optional[int] = field(default=None, metadata={"range": [1, 4]})
+    discriminator: Optional[int] = field(default=None, metadata={"min_length": 1, "max_length": 4})
     """The discriminator of the user.
     
     Will be stripped if equal to 0
