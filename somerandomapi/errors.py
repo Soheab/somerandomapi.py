@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import Any, Optional, TYPE_CHECKING
 
+from . import utils as _utils
 
 if TYPE_CHECKING:
     from dataclasses import Field
@@ -149,11 +150,11 @@ class TypingError(TypeError):
     ) -> None:
         self.cls: BaseModel = cls
         self.field: Field = field
-        message = message or "{field_name} must be of type {field_type}, not {current_type}."
+        message = message or "{field_name} must be of type {field_type} not {current_type}."
         message = message.format(
             field_name=f"'{field.name}'",
             class_name=f"{cls.__class__.__name__}()",
-            field_type=field.type.__class__.__name__,
+            field_type=_utils._get_type(field.type, {}, {})[0].__name__,
             current_type=type(value).__name__,
             field_value=value,
             field_value_type=type(value).__name__,
