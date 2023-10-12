@@ -5,8 +5,6 @@ import re
 from dataclasses import Field
 from typing import Any, get_args, get_origin, Literal, Match, Optional, Tuple, Type, TYPE_CHECKING, TypeVar, Union
 
-from somerandomapi.errors import TypingError
-
 
 if TYPE_CHECKING:
     from .enums import BaseEnum
@@ -69,6 +67,9 @@ def _get_literal_type(_type: Type, gs: dict[str, Any], lc: dict[str, Any]) -> Op
 
 
 def _check_literal_values(cls, field: Field, _type: Literal, values: Tuple[Any, ...]) -> None:
+    # this is here to prevent circular imports.
+    from somerandomapi.errors import TypingError
+
     args = get_args(_type)
     # shouldn't happen.
     if len(args) < 1:
@@ -98,7 +99,7 @@ def _get_type(_type: Type, gs: dict[str, Any], lc: dict[str, Any]) -> Tuple[Any,
         return (literal,)
     elif origin is Union:
         if _is_optional(_type):
-            return [x for x in get_args(_type) if x is not type(None)][0]
+            return ([x for x in get_args(_type) if x is not type(None)][0],)
 
         args = get_args(_type)
         for arg in args:
@@ -119,6 +120,9 @@ def _get_type(_type: Type, gs: dict[str, Any], lc: dict[str, Any]) -> Tuple[Any,
 def _check_types(
     cls, field: Field, _type: Type, value: Union[str, int, Any], gls: dict[str, Any], lcs: dict[str, Any]
 ) -> None:
+    # this is here to prevent circular imports.
+    from somerandomapi.errors import TypingError
+
     glbs = gls | globals()
     lcls = lcs | locals()
 
