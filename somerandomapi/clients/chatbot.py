@@ -342,7 +342,7 @@ class Chatbot:
     def __await__(self) -> Generator[Any, None, ChatbotResult]:
         if self.message is None:
             raise ValueError(
-                f"No message was provided. Please provide a message in the constructor or use the `.send()` method."
+                "No message was provided. Please provide a message in the constructor or use the `.send()` method."
             )
 
         return self.send(self.message).__await__()

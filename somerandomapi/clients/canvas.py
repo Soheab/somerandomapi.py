@@ -150,7 +150,7 @@ class CanvasClient:
             The filtered image.
         """
         if threshold and not None and not 1 <= threshold <= 255:
-            raise ValueError(f"Threshold must be between 1 and 255. Don't specify it to get a random value.")
+            raise ValueError("Threshold must be between 1 and 255. Don't specify it to get a random value.")
 
         threshold = threshold or random.randint(1, 255)
         _enum = CanvasFilter
