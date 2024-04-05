@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 from typing import Any, Callable, Literal, Optional, TYPE_CHECKING
 from urllib.parse import quote_plus, urlencode
 
@@ -11,6 +12,8 @@ if TYPE_CHECKING:
 
     from ..internals.http import APIKey
     from ..types.http import ValidPaths
+
+_log: logging.Logger = logging.getLogger("somerandomapi.endpoints")
 
 _TIER_ERROR = (
     "Missing required key tier level for {path} endpoint. "
@@ -68,6 +71,7 @@ class Parameter:
         endpoint: Endpoint,
         key_value: Optional[str],
     ) -> None:
+        _log.debug("Validating key for %r endpoint", endpoint.path)
         if not client_key and not key_value:
             raise TypeError(
                 f"Missing required key for {endpoint.path} endpoint. "
@@ -78,15 +82,27 @@ class Parameter:
         if not client_key and key_value:
             self._key_value = (0, key_value)
             self.value = key_value
+            _log.debug(
+                "No key present and the Client and key passed as a parameter for %r endpoint, assuming tier 0",
+                endpoint.path,
+                extra={"tier": 0, "path": endpoint.path, "key": key_value},
+            )
             return
 
         if client_key:
+            _log.debug("Key present for %s endpoint on Client.", endpoint.path)
             if self.key_tier:
                 # check if client_key.tier is not 0 and is not less than self.key_tier
                 if client_key.tier and client_key.tier < self.key_tier:
                     raise TypeError(_TIER_ERROR.format(path=endpoint.path, tier=self.key_tier))
             self._key_value = (client_key.tier, client_key.value)
             self.value = client_key.value
+            _log.debug(
+                "Key tier is %r for %r endpoint",
+                client_key.tier,
+                endpoint.path,
+                extra={"tier": client_key.tier, "path": endpoint.path, "key": client_key.value},
+            )
             return
 
     @property
@@ -115,17 +131,21 @@ class Endpoint:
             param._name = name
 
     def _set_param_values(self, _key: Optional[APIKey] = None, **values: Any) -> Self:
+        _log.debug("Setting parameter values for %r endpoint", self.path)
         # new class to avoid mutating the original
         cls = self.__class__(self.path, **self.parameters)
         params = cls.parameters.copy()
         if key_param := params.get("key"):
+            _log.debug("Key parameter found for %r endpoint, validating...", self.path)
             key_param._validate_key(_key, cls, values.get("key"))
 
         for name, param in params.items():
             if param.is_key_parameter:
+                _log.debug("Skipping key parameter %r", name)
                 continue
 
             if not param.required and name not in values:
+                _log.debug("Skipping optional parameter %r", name)
                 continue
 
             if param.required:
@@ -135,11 +155,15 @@ class Endpoint:
                     raise TypeError(f"Missing required value for parameter {name}")
 
             if param.key_tier:
+                _log.debug("Checking if key tier matches required tier for %r endpoint and parameter %r", self.path, name)
                 if key_param and key_param._key_value:
+                    _log.debug("Key tier is %s for %s endpoint", key_param._key_value[0], self.path)
                     tier = key_param._key_value[0]
+                    _log.debug("Set key tier is %s", tier)
                     if tier and tier < param.key_tier:
                         raise TypeError(_TIER_ERROR_PARAMETER.format(param=name, path=cls.path, tier=param.key_tier))
 
+            _log.debug("Setting value for %s parameter to %r", name, values[name])
             param.value = values[name]
 
         return cls

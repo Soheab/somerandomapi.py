@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import logging
 from typing import Any, ClassVar, Coroutine, Literal, NamedTuple, Optional, overload, TYPE_CHECKING, TypeVar, Union
 from urllib.parse import quote_plus, urlencode
 
@@ -60,6 +61,8 @@ if TYPE_CHECKING:
 
 
 __all__ = ()
+
+_log: logging.Logger = logging.getLogger("somerandomapi.http")
 
 
 async def json_or_text(response: aiohttp.ClientResponse) -> Union[dict[str, Any], str]:
@@ -232,6 +235,12 @@ class HTTPClient:
 
     async def request(self, enum: BaseEndpoint, /, *, pre_url: Optional[str] = None, **parameters: Any) -> Any:
         endpoint: Endpoint = enum.value
+        _log.debug(
+            "Request called with endpoint: %s, pre_url: %s and parameters: %s",
+            endpoint.path,
+            pre_url,
+            parameters,
+        )
         if not pre_url:
             if endpoint.parameters:
                 if not parameters:
@@ -257,6 +266,7 @@ class HTTPClient:
             if isinstance(data, dict):
                 # sometimes the api returns a 200 with an error
                 if data.get("error"):
+                    _log.debug("Request failed with error: %s and data: %s", data["error"], data)
                     # we should show the correct status code
                     data["code"] = response.status
                     raise BadRequest(enum, data)
@@ -268,16 +278,22 @@ class HTTPClient:
                 return data
 
             elif response.status == 400:
+                _log.debug("Request failed with status code 400: %s", data)
                 raise BadRequest(enum, data)
             elif response.status == 403:
+                _log.debug("Request failed with status code 403: %s", data)
                 raise Forbidden(enum, data)
             elif response.status == 404:
+                _log.debug("Request failed with status code 404: %s", data)
                 raise NotFound(enum, data)
             elif response.status == 429:
+                _log.debug("Request failed with status code 429: %s", data)
                 raise RateLimited(enum, data)
             elif response.status == 500:
+                _log.debug("Request failed with status code 500: %s", data)
                 raise InternalServerError(enum, data)
             else:
+                _log.debug("Request failed with status code %s: %s", response.status, data)
                 raise HTTPException(enum, response, data)
 
     async def _get_image_url(self, url: str, /) -> bytes:
@@ -285,6 +301,7 @@ class HTTPClient:
         if not self._session:
             raise RuntimeError("Session is not initialized. This should never happen.")
 
+        _log.debug("Requesting bytes from %s", url)
         async with self._session.get(url) as response:
             if response.status == 200:
                 return await response.read()
@@ -296,6 +313,13 @@ class HTTPClient:
         background = data.pop("background", None)
         template = data.pop("template")
         endpoint: Endpoint = enum.value
+        _log.debug(
+            "Request for welcome card endpoint: %s with data: %s, template: %s background: %s",
+            endpoint.path,
+            data,
+            template,
+            background,
+        )
         if endpoint.parameters:
             endpoint._set_param_values(self._key, **data)
 
@@ -310,14 +334,19 @@ class HTTPClient:
             params = {name: param.value for name, param in endpoint.parameters.items() if param.value is not None}
             url += "?" + urlencode(params, quote_via=quote_plus)
 
+        _log.debug("Constructed URL: %s", url)
+
         return await self.request(enum, pre_url=url)
 
     async def close(self) -> None:
+        _log.debug("Closing the session and chatbot.")
         if self._session and not self._session.closed:
             await self._session.close()
+            _log.debug("Session closed.")
 
         if self.__chatbot:
             await self.__chatbot.close()
+            _log.debug("Chatbot closed.")
 
         self._session = None
         self.__chatbot = None

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from typing import Literal, Optional, overload, TYPE_CHECKING, Union
+import logging
 
 import aiohttp
 
@@ -29,6 +30,8 @@ if TYPE_CHECKING:
 
 
 __all__ = ("Client",)
+
+_log: logging.Logger = logging.getLogger(__name__)
 
 
 class Client:
@@ -75,6 +78,7 @@ class Client:
 
                 _key = key
             else:
+                _log.debug("Key was passed as a string, assuming tier 0")
                 _key = (0, key)
 
         self._http = HTTPClient(_key, session)
