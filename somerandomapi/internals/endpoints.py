@@ -139,6 +139,9 @@ class Endpoint:
             _log.debug("Key parameter found for %r endpoint, validating...", self.path)
             key_param._validate_key(_key, cls, values.get("key"))
 
+        if not params:
+            _log.debug("No parameters found for %r endpoint", self.path)
+            return cls
         for name, param in params.items():
             if param.is_key_parameter:
                 _log.debug("Skipping key parameter %r", name)
