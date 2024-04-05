@@ -106,18 +106,66 @@ exclude_lines = [
     "@overload"
 ]
 
-[tool.isort]
-profile = "black"
-combine_as_imports = true
-combine_star = true
-line_length = 120
-py_version=39
-multi_line_output=8
-balanced_wrapping=true
-lines_after_imports=2
-include_trailing_comma=true
-force_alphabetical_sort_within_sections=true
-remove_redundant_aliases=true
-
 [tool.black]
-line-length = 120
+line-length = 125
+
+# https://beta.ruff.rs/docs/settings/
+[tool.ruff]
+fix = true # default: false
+line-length = 125 # default: 88
+include = [
+    "somerandomapi",
+    "somerandomapi/types",
+    "somerandomapi/clients",
+    "somerandomapi/models",
+    "somerandomapi/internals",
+]
+exclude = [
+    "**/__pycache__",
+    "_build",
+    "build",
+    "dist",
+    "docs",
+]
+target-version = "py39"  # default: "py38"
+ignore = [
+    # https://docs.astral.sh/ruff/rules/undefined-local-with-import-star-usage/
+    "F405"
+]
+
+[tool.ruff.flake8-annotations]
+allow-star-arg-any = true # default: false
+ignore-fully-untyped = true  # default: false
+suppress-dummy-args = true # default: false
+
+[tool.ruff.flake8-bandit]
+check-typed-exception = true  # default: false
+
+[tool.ruff.flake8-comprehensions]
+allow-dict-calls-with-keyword-arguments = true  # default: false
+
+[tool.ruff.flake8-type-checking]
+strict = true
+
+[tool.ruff.flake8-unused-arguments]
+ignore-variadic-names = true
+
+[tool.ruff.isort]
+case-sensitive = true  # default: false
+combine-as-imports = true  # default: false 
+force-sort-within-sections = true  # default: false
+force-to-top = ["future", "typing"]  # default: []
+force-wrap-aliases = true  # default: false
+required-imports = ["from __future__ import annotations"]  # default: []
+section-order = ["future", "standard-library", "third-party", "first-party", "local-folder"]  # default
+
+[tool.ruff.pydocstyle]
+convention = "numpy"  # default: none
+ignore-decorators = ["typing.overload"]  # default: []
+
+[tool.ruff.pylint]
+max-args = 20  # default: 5 # lets not limit ourselves :)
+
+[tool.ruff.pyupgrade]
+# Preserve types, even if a file imports `from __future__ import annotations`.
+keep-runtime-typing = true  # default: false
