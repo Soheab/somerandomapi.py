@@ -23,8 +23,7 @@ if TYPE_CHECKING:
 
 
 class _ChatbotRequestMethod(Protocol):
-    async def __call__(self, *, message: str) -> ChatbotPayload:
-        ...
+    async def __call__(self, *, message: str) -> ChatbotPayload: ...
 
 
 __all__ = ("Chatbot",)

@@ -44,8 +44,7 @@ class Lyrics(BaseModel):
         @classmethod
         def from_dict(
             cls, *, title: str, author: str, lyrics: str, thumbnail: dict[str, Any], links: dict[str, Any]
-        ) -> "Lyrics":
-            ...
+        ) -> "Lyrics": ...
 
     @property
     def thumbnail(self) -> LyricsLinks:

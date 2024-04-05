@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from typing import Literal, Optional, overload, TYPE_CHECKING, Union
 import logging
+from typing import TYPE_CHECKING, Any, Literal, Optional, Union, overload
 
 import aiohttp
 
@@ -19,7 +19,6 @@ from ..models.lyrics import Lyrics
 from ..models.rgb import RGB
 from ..models.welcome.free import WelcomeFree
 from .chatbot import Chatbot
-
 
 if TYPE_CHECKING:
     from .animal import AnimalClient
@@ -50,10 +49,12 @@ class Client:
         A key can also be passed per-request, in which case it will override the key passed to the client.
 
         For more information on the tiers, :apidocs:`see the API documentation <#api-keys>`
-
     """
 
-    __slots__: tuple[str, ...] = ("_http", "__chatbot")
+    __slots__: tuple[str, ...] = (
+        "_http",
+        "__chatbot",
+    )
 
     def __init__(
         self,
@@ -87,7 +88,7 @@ class Client:
     async def __aenter__(self) -> Client:
         return self
 
-    async def __aexit__(self, exc_type, exc_val, exc_tb) -> None:
+    async def __aexit__(self, *_: Any) -> None:
         await self.close()
 
     @property
@@ -276,12 +277,10 @@ class Client:
         return res["joke"]
 
     @overload
-    async def _handle_rgb_or_hex(self, endpoint: Literal[CanvasMiscEndpoint.RGB], input: str) -> RGB:
-        ...
+    async def _handle_rgb_or_hex(self, endpoint: Literal[CanvasMiscEndpoint.RGB], input: str) -> RGB: ...
 
     @overload
-    async def _handle_rgb_or_hex(self, endpoint: Literal[CanvasMiscEndpoint.HEX], input: str) -> str:
-        ...
+    async def _handle_rgb_or_hex(self, endpoint: Literal[CanvasMiscEndpoint.HEX], input: str) -> str: ...
 
     async def _handle_rgb_or_hex(
         self, endpoint: Literal[CanvasMiscEndpoint.RGB, CanvasMiscEndpoint.HEX], input: str

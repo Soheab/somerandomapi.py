@@ -32,8 +32,7 @@ class YoutubeComment(BaseImageModel):
             username: str,
             avatar: str,
             comment: str,
-        ):
-            ...
+        ): ...
 
     def __post_init__(self):
         self.__class__._validate_types(self, globals(), locals())

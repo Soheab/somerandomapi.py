@@ -47,8 +47,7 @@ class Tweet(BaseImageModel):
             replies: Optional[int],
             likes: Optional[int],
             retweets: Optional[int],
-        ):
-            ...
+        ): ...
 
     def __post_init__(self):
         self.__class__._validate_types(self, globals(), locals())

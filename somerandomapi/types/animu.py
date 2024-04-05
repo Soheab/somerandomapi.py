@@ -12,8 +12,7 @@ Animus = Literal[
 ]
 
 
-class Animu(WithLink):
-    ...
+class Animu(WithLink): ...
 
 
 class AnimuQuote(TypedDict):

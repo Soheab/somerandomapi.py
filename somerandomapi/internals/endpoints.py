@@ -74,7 +74,7 @@ class Parameter:
         _log.debug("Validating key for %r endpoint", endpoint.path)
         if not client_key and not key_value:
             raise TypeError(
-                f"Missing required key for {endpoint.path} endpoint. "
+                f"Missing required key for {endpoint.path!r} endpoint. "
                 "Either pass a key when calling the method or set it in the Client constructor."
             )
 
@@ -95,6 +95,7 @@ class Parameter:
                 # check if client_key.tier is not 0 and is not less than self.key_tier
                 if client_key.tier and client_key.tier < self.key_tier:
                     raise TypeError(_TIER_ERROR.format(path=endpoint.path, tier=self.key_tier))
+
             self._key_value = (client_key.tier, client_key.value)
             self.value = client_key.value
             _log.debug(
@@ -142,6 +143,7 @@ class Endpoint:
         if not params:
             _log.debug("No parameters found for %r endpoint", self.path)
             return cls
+
         for name, param in params.items():
             if param.is_key_parameter:
                 _log.debug("Skipping key parameter %r", name)
@@ -190,8 +192,7 @@ class Animu(BaseEndpoint):
     if TYPE_CHECKING:
 
         @classmethod
-        def from_enum(cls, enum: Literal[None]) -> None:
-            ...
+        def from_enum(cls, enum: Literal[None]) -> None: ...
 
     @classmethod
     def base(cls):
@@ -208,8 +209,7 @@ class BaseCanvas(BaseEndpoint):
     if TYPE_CHECKING:
 
         @classmethod
-        def from_enum(cls, enum: Literal[None]) -> None:
-            ...
+        def from_enum(cls, enum: Literal[None]) -> None: ...
 
     @classmethod
     def base(cls):
@@ -236,8 +236,7 @@ class CanvasFilter(BaseCanvas):
                 enums.CanvasFilter.INVERT_GREYSCALE,
                 enums.CanvasFilter.THRESHOLD,
             ],
-        ) -> Self:
-            ...
+        ) -> Self: ...
 
     @classmethod
     def base(cls):
@@ -275,8 +274,7 @@ class CanvasMisc(BaseCanvas):
         @classmethod
         def from_enum(
             cls, enum: Literal[enums.CanvasFilter.BLUR, enums.CanvasFilter.JPG, enums.CanvasFilter.PIXELATE]
-        ) -> Self:
-            ...
+        ) -> Self: ...
 
     @classmethod
     def base(cls):
@@ -340,8 +338,7 @@ class CanvasOverlay(BaseCanvas):
     if TYPE_CHECKING:
 
         @classmethod
-        def from_enum(cls, enum: enums.CanvasOverlay) -> Self:
-            ...
+        def from_enum(cls, enum: enums.CanvasOverlay) -> Self: ...
 
     @classmethod
     def base(cls):
@@ -360,8 +357,7 @@ class Facts(BaseEndpoint):
     if TYPE_CHECKING:
 
         @classmethod
-        def from_enum(cls, enum: enums.FactAnimal) -> Self:
-            ...
+        def from_enum(cls, enum: enums.FactAnimal) -> Self: ...
 
     @classmethod
     def base(cls):
@@ -380,8 +376,7 @@ class Animal(BaseEndpoint):
     if TYPE_CHECKING:
 
         @classmethod
-        def from_enum(cls, enum: enums.Animal) -> Self:
-            ...
+        def from_enum(cls, enum: enums.Animal) -> Self: ...
 
     @classmethod
     def base(cls):
@@ -404,8 +399,7 @@ class Img(BaseEndpoint):
     if TYPE_CHECKING:
 
         @classmethod
-        def from_enum(cls, enum: enums.ImgAnimal) -> Self:
-            ...
+        def from_enum(cls, enum: enums.ImgAnimal) -> Self: ...
 
     @classmethod
     def base(cls):
@@ -427,8 +421,7 @@ class Others(BaseEndpoint):
     if TYPE_CHECKING:
 
         @classmethod
-        def from_enum(cls, enum: Literal[None]) -> None:
-            ...
+        def from_enum(cls, enum: Literal[None]) -> None: ...
 
     @classmethod
     def base(cls):
@@ -454,8 +447,7 @@ class Pokemon(BaseEndpoint):
     if TYPE_CHECKING:
 
         @classmethod
-        def from_enum(cls, enum: Literal[None]) -> None:
-            ...
+        def from_enum(cls, enum: Literal[None]) -> None: ...
 
     @classmethod
     def base(cls):
@@ -471,8 +463,7 @@ class Premium(BaseEndpoint):
     if TYPE_CHECKING:
 
         @classmethod
-        def from_enum(cls, enum: Literal[None]) -> None:
-            ...
+        def from_enum(cls, enum: Literal[None]) -> None: ...
 
     @classmethod
     def base(cls):
@@ -516,9 +507,7 @@ class Premium(BaseEndpoint):
             extra="Tier 2 for this endpoint, use the free endpoint if you do not have a tier 2 key",
         ),
         bg=Parameter(required=False, extra="Custom background url, requires tier 2 key", key_tier=2),
-        font=Parameter(
-            required=False, extra="Choose a custom font from our predetermined list, use a number from 1-10"
-        ),
+        font=Parameter(required=False, extra="Choose a custom font from our predetermined list, use a number from 1-10"),
     )
 
 
@@ -526,8 +515,7 @@ class Chatbot(BaseEndpoint):
     if TYPE_CHECKING:
 
         @classmethod
-        def from_enum(cls, enum: Literal[None]) -> None:
-            ...
+        def from_enum(cls, enum: Literal[None]) -> None: ...
 
     @classmethod
     def base(cls):
@@ -547,8 +535,7 @@ class WelcomeImages(BaseEndpoint):
     if TYPE_CHECKING:
 
         @classmethod
-        def from_enum(cls, enum: Literal[None]) -> None:
-            ...
+        def from_enum(cls, enum: Literal[None]) -> None: ...
 
     @classmethod
     def base(cls):
@@ -564,7 +551,5 @@ class WelcomeImages(BaseEndpoint):
         memberCount=Parameter(),
         textcolor=Parameter(extra="red, orange, yellow, green, blue, indigo, purple, pink, black, or white"),
         key=Parameter(key_tier=0, is_key_parameter=True, extra="requires a key but does not need to be active"),
-        font=Parameter(
-            required=False, extra="Choose a custom font from our predetermined list, use a number from 1-10"
-        ),
+        font=Parameter(required=False, extra="Choose a custom font from our predetermined list, use a number from 1-10"),
     )

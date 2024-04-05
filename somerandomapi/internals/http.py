@@ -16,7 +16,6 @@ from ..errors import *
 from ..models.image import Image
 from ..models.welcome import WelcomeFree, WelcomePremium
 
-
 if TYPE_CHECKING:
     from ..clients.chatbot import Chatbot
     from ..types.animal import Animal as AnimalPayload
@@ -254,6 +253,7 @@ class HTTPClient:
             full_url = pre_url
 
         _log.debug("Requesting %s with parameters: %s", full_url, parameters)
+
         await self.initiate_session()
         if not self._session:
             raise RuntimeError("Session is not initialized. This should never happen.")

@@ -78,13 +78,10 @@ class Rankcard(BaseImageModel):
             ctext: Optional[str] = None,
             ccxp: Optional[str] = None,
             cbar: Optional[str] = None,
-        ):
-            ...
+        ): ...
 
     def __post_init__(self) -> None:
-        COLOR_ERROR = (
-            "Invalid {0} color. Must be a valid hex color or 'random'. Valid formats: '#000000', 0x000000, 000000"
-        )
+        COLOR_ERROR = "Invalid {0} color. Must be a valid hex color or 'random'. Valid formats: '#000000', 0x000000, 000000"
         if self.background_color is not None:
             if not (color := _utils._check_colour_value(self.background_color)):
                 raise ValueError(COLOR_ERROR.format("background"))

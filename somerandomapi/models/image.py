@@ -17,8 +17,7 @@ if TYPE_CHECKING:
             fp: Union[str, bytes, PathLike[Any], io.BufferedIOBase],
             filename: Optional[str] = None,
             **kwargs: Any,
-        ) -> Self:
-            ...
+        ) -> Self: ...
 
 
 __all__ = ("Image",)
@@ -51,16 +50,13 @@ class Image:
         return self._url
 
     @overload
-    async def read(self, bytesio: Literal[True] = ...) -> io.BytesIO:
-        ...
+    async def read(self, bytesio: Literal[True] = ...) -> io.BytesIO: ...
 
     @overload
-    async def read(self, bytesio: Literal[False] = ...) -> bytes:
-        ...
+    async def read(self, bytesio: Literal[False] = ...) -> bytes: ...
 
     @overload
-    async def read(self, bytesio: bool = ...) -> Union[bytes, io.BytesIO]:
-        ...
+    async def read(self, bytesio: bool = ...) -> Union[bytes, io.BytesIO]: ...
 
     async def read(self, bytesio: bool = True) -> Union[bytes, io.BytesIO]:
         """Returns the image data.

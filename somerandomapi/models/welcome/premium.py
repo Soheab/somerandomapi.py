@@ -64,5 +64,4 @@ class WelcomePremium(BaseImageModel):
             key: Optional[str] = None,
             bg: Optional[str] = None,
             font: Optional[int] = None,
-        ):
-            ...
+        ): ...

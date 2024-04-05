@@ -26,5 +26,4 @@ class Dictionary(BaseModel):
             *,
             word: str,
             definition: str,
-        ) -> "Dictionary":
-            ...
+        ) -> "Dictionary": ...

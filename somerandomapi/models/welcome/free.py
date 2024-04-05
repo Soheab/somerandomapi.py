@@ -66,8 +66,7 @@ class WelcomeFree(BaseImageModel):
             discriminator: Optional[int] = None,
             key: Optional[str] = None,
             font: Optional[int] = None,
-        ):
-            ...
+        ): ...
 
     def to_dict(self):
         res = super().to_dict()

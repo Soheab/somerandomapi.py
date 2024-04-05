@@ -35,9 +35,7 @@ def _gen_colour(numbers: Optional[int] = None) -> str:
 
 
 def _check_colour_value(hex_input: Optional[Union[str, int]], param_name: Optional[str] = None) -> str:
-    INVALID_COLOR_ERROR = (
-        f"'{param_name or 'colour'}' must be a valid hex value (#000000, 000000 or 0x000000) or 'random'"
-    )
+    INVALID_COLOR_ERROR = f"'{param_name or 'colour'}' must be a valid hex value (#000000, 000000 or 0x000000) or 'random'"
     should_random = str(hex_input).lower() == "random"
     if not hex_input and not should_random:
         raise ValueError(INVALID_COLOR_ERROR)
@@ -54,19 +52,19 @@ def _check_colour_value(hex_input: Optional[Union[str, int]], param_name: Option
     raise ValueError(INVALID_COLOR_ERROR)
 
 
-def _get_literal_type(_type: Type, gs: dict[str, Any], lc: dict[str, Any]) -> Optional[Literal]:
+def _get_literal_type(_type: Type, gs: dict[str, Any], lc: dict[str, Any]) -> Optional[Literal]:  # type: ignore
     if isinstance(_type, str):
         _type = eval(_type, gs.update(globals()), lc.update(locals()))
 
     origin = get_origin(_type)
 
     if origin is Literal:
-        return _type
+        return _type  # type: ignore
 
     return None
 
 
-def _check_literal_values(cls, field: Field, _type: Literal, values: Tuple[Any, ...]) -> None:
+def _check_literal_values(cls, field: Field, _type: type[Literal], values: Tuple[Any, ...]) -> None:  # type: ignore
     # this is here to prevent circular imports.
     from somerandomapi.errors import TypingError
 
@@ -133,7 +131,7 @@ def _check_types(
         return
 
     if literal := _get_literal_type(_type, glbs, lcls):
-        _check_literal_values(cls, field, literal, (value,))
+        _check_literal_values(cls, field, literal, (value,))  # type: ignore
         return
 
     origin = get_origin(_type)

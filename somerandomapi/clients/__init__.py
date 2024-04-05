@@ -4,6 +4,7 @@ Clients
 
 This module contains all the clients for the library. Each client represents a different endpoint of the API.
 """
+
 # fmt: off
 # isort: off
 from .animal import AnimalClient as AnimalClient

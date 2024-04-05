@@ -18,5 +18,4 @@ Images = Literal[
 ]
 
 
-class Img(WithLink):
-    ...
+class Img(WithLink): ...
