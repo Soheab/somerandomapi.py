@@ -16,7 +16,7 @@ AnimalClient
 
 .. autoclass:: AnimalClient()
 
-AnimeClient
+AnimuClient
 ~~~~~~~~~~~~
 
 .. autoclass:: AnimuClient()
