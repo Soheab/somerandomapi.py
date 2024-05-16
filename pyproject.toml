@@ -44,10 +44,10 @@ classifiers = [
 
 [project.optional-dependencies]
 docs = [
-    "Sphinx==6.1",
     "sphinx_rtd_theme==1.2.*",
-    "sphinx-autodoc-typehints==1.22",
-    "enum-tools[sphinx]==0.9.*",
+    "Sphinx==7.3.*",
+    "sphinx-autodoc-typehints==2.1.*",
+    "enum-tools[sphinx]==0.12.*",
 ]
 
 
