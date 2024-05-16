@@ -38,11 +38,14 @@ class BaseEndpoint(enums.BaseEnum):
 
     @classmethod
     def from_enum(cls, enum: enums.BaseEnum) -> Self:
+        if not isinstance(enum, enums.BaseEnum):
+            raise TypeError(f"Expected 'enum' to be an instance of BaseEnum, got {enum!r} instead.")
+
         try:
             val = enum.value.replace("-", "_").upper()
             return getattr(cls, val)
-        except AttributeError:
-            raise AttributeError("No endpoint found for this enum") from None
+        except AttributeError as e:
+            raise ValueError(f"Could not find an endpoint matching the passed enum ({enum}).") from e
 
 
 class Parameter:
