@@ -186,7 +186,10 @@ class PremiumClient:
         key: Optional[:class:`str`]
             The key. At least tier 2. Required if no key is passed to the client.
         font: Optional[:class:`int`]
-            The font to use. Must be a number between 1 and 7.
+            The font from a predefined list. Choose a number between 0 and 7.
+
+            .. versionchanged:: 0.0.8
+                The library sets the font to 7 if it's greater than 8 as the API only accepts a range of 0-7 now.
 
         """
         values = (

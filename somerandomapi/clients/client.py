@@ -368,7 +368,10 @@ class Client:
         key: Optional[:class:`str`]
             The key to use. Required if a key was not passed when creating the client.
         font: Optional[:class:`int`]
-            The font to use. Must be a number between 1 and 7.
+            The font from a predefined list. Choose a number between 0 and 7.
+
+            .. versionchanged:: 0.0.8
+                The library sets the font to 7 if it's greater than 8 as the API only accepts a range of 0-7 now.
         """
         values = (
             ("template", template, True),
