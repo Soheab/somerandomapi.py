@@ -339,7 +339,7 @@ class Client:
         member_count: Optional[int] = None,
         text_color: Optional[WelcomeTextColor] = None,
         key: Optional[str] = None,
-        font: Optional[int] = None,
+        font: Optional[Literal[0, 1, 2, 3, 4, 5, 6, 7]] = None,
     ) -> WelcomeFree:
         """Generate a welcome image.
 
@@ -368,7 +368,7 @@ class Client:
         key: Optional[:class:`str`]
             The key to use. Required if a key was not passed when creating the client.
         font: Optional[:class:`int`]
-            The font to use.
+            The font to use. Must be a number between 1 and 7.
         """
         values = (
             ("template", template, True),

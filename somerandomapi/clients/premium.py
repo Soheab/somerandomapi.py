@@ -159,7 +159,7 @@ class PremiumClient:
         text_color: Optional[WelcomeTextColor] = None,
         key: Optional[str] = None,
         background_url: Optional[str] = None,
-        font: Optional[int] = None,
+        font: Optional[Literal[0, 1, 2, 3, 4, 5, 6, 7]] = None,
     ) -> WelcomePremium:
         """Generate a custom welcome image.
 
@@ -186,7 +186,7 @@ class PremiumClient:
         key: Optional[:class:`str`]
             The key. At least tier 2. Required if no key is passed to the client.
         font: Optional[:class:`int`]
-            The font to use. Must be a number between 1 and 10.
+            The font to use. Must be a number between 1 and 7.
 
         """
         values = (
