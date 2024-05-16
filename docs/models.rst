@@ -6,11 +6,12 @@ Models
 All the public models for the API.
 
 
-AnimalFact
+AnimalFacts
 ~~~~~~~~~~~
 
 .. autoclass:: AnimalImageFact()
 
+.. autoclass:: AnimalImageOrFact()
 
 AnimuQuote
 ~~~~~~~~~~~~
