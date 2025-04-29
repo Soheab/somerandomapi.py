@@ -3,18 +3,18 @@ from typing import Literal
 from .http import WithLink
 
 
-Images = Literal[
-    "bird",
-    "cat",
-    "dog",
+ValidImg = Literal[
     "fox",
-    "kangaroo",
-    "koala",
+    "cat",
     "panda",
-    "raccoon",
-    "pikachu",
     "red_panda",
+    "pikachu",
+    "racoon",
+    "koala",
+    "kangaroo",
     "whale",
+    "dog",
+    "bird",
 ]
 
 

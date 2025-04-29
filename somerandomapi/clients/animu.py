@@ -1,85 +1,76 @@
 from __future__ import annotations
-
 from typing import TYPE_CHECKING
 
-from ..internals.endpoints import Animu as AnimuEndpoint
-from ..models.animu_quote import AnimuQuote
-
+from ..internals.endpoints import Animu as AnimuEndpoint, _Endpoint
+from .abc import BaseClient
+from .. import utils
+from ..enums import Animu as AnimuEnum
+from ..models.animu import AnimuQuote
 
 if TYPE_CHECKING:
-    from ..internals.http import HTTPClient
+    from ..types.animu import ValidAnimu
 
 
 __all__ = ("AnimuClient",)
 
 
-class AnimuClient:
+class AnimuClient(BaseClient):
     """Represents the "Animu" endpoint.
 
     This class is not meant to be instantiated by the user. Instead, access it through the :attr:`~somerandomapi.Client.animu` attribute of the :class:`~somerandomapi.Client` class.
     """
 
-    __slots__ = ("__http",)
+    #    @BaseClient._contextmanager
+    async def get(self, animu_type: ValidAnimu | AnimuEnum, /) -> str:
+        """Get a random animu image.
 
-    def __init__(self, http) -> None:
-        self.__http: HTTPClient = http
-
-    async def face_palm(self) -> str:
-        """Get a random animu face palm image.
-
-        Returns
-        -------
-        :class:`str`
-            The image URL.
-        """
-        response = await self.__http.request(AnimuEndpoint.FACE_PALM)
-        return response["link"]
-
-    async def facepalm(self) -> str:
-        """Alias for :meth:`face_palm`."""
-        return await self.face_palm()
-
-    async def hug(self) -> str:
-        """Get a random animu hug image.
+        Parameters
+        ----------
+        animu_type: :class:`~somerandomapi.enums.Animu`
+            The type of animu to get.
 
         Returns
         -------
         :class:`str`
-            The image URL.
+            The URL of the random animu image.
         """
-        response = await self.__http.request(AnimuEndpoint.HUG)
-        return response["link"]
+        _animu_type = utils._try_enum(AnimuEnum, animu_type)
+        valid_animu = list(map(str, list(AnimuEnum)))
+        if not _animu_type:
+            not_valid_error: str = (
+                f"'animu_type' must be a 'somerandomapi.Animu' or one of {', '.join(valid_animu)}, not {animu_type!r}."
+            )
+            raise ValueError(not_valid_error)
 
-    async def pat(self) -> str:
-        """Get a random animu pat image.
+        res = await self._http.request(AnimuEndpoint.from_enum(_animu_type))
+        return res["link"]
 
-        Returns
-        -------
-        :class:`str`
-            The image URL.
-        """
-        response = await self.__http.request(AnimuEndpoint.PAT)
-        return response["link"]
-
-    async def wink(self) -> str:
-        """Get a random animu wink image.
-
-        Returns
-        -------
-        :class:`str`
-            The image URL.
-        """
-        response = await self.__http.request(AnimuEndpoint.WINK)
-        return response["link"]
-
-    async def quote(self) -> AnimuQuote:
+    async def random_quote(self) -> AnimuQuote:
         """Get a random animu quote.
 
         Returns
         -------
         :class:`AnimuQuote`
             Object representing the random quote.
-            The quote can be accessed through the ``sentance`` attribute.
+            The quote can be accessed through the ``quote`` attribute.
         """
-        response = await self.__http.request(AnimuEndpoint.QUOTE)
+        response = await self._http.request(_Endpoint.ANIMU_QUOTE)
         return AnimuQuote(**response)
+
+    @BaseClient._proxy_to(get, pre_args=((0, AnimuEnum.HUG),))
+    async def hug(self) -> str: ...
+
+    @BaseClient._proxy_to(get, pre_args=((0, AnimuEnum.PAT),))
+    async def pat(self) -> str: ...
+
+    @BaseClient._proxy_to(get, pre_args=((0, AnimuEnum.NOM),))
+    async def nom(self) -> str: ...
+
+    @BaseClient._proxy_to(get, pre_args=((0, AnimuEnum.CRY),))
+    async def cry(self) -> str: ...
+
+    @BaseClient._proxy_to(get, pre_args=((0, AnimuEnum.KISS),))
+    async def kiss(self) -> str: ...
+
+    @BaseClient._proxy_to(get, pre_args=((0, AnimuEnum.POKE),))
+    async def poke(self) -> str: ...

@@ -9,6 +9,7 @@ if TYPE_CHECKING:
     from dataclasses import Field
 
     from .models.abc import BaseModel
+    from .internals.endpoints import Endpoint
 
 
 __all__ = (
@@ -31,15 +32,14 @@ class SomeRandomApiException(Exception):
     ----------
     data: Any
         The data returned by the API.
-    enum: ``BaseEndpoint``
-        The enum category that the endpoint is a part of.
     endpoint: ``Endpoint``
         The endpoint that was called.
+        Use ``endpoint.path`` to get the full path of the endpoint.
     """
 
-    def __init__(self, enum, data: Any, /):
+    def __init__(self, endpoint: Endpoint, data: Any, /):
         self.data: Any = data
-        self.endpoint = enum.value
+        self.endpoint: Endpoint = endpoint
 
         self.message = f"{str(data)}"
         if isinstance(data, dict):
@@ -55,7 +55,9 @@ class SomeRandomApiException(Exception):
 
             self.message += f" (Code: {self.code})"
 
-        super().__init__(f"While requesting /{self.endpoint.path or enum.base()}: {self.message}")
+        # if self.code in (400, 404, 403):
+        #   self.message = ""
+        super().__init__(f"While requesting /{endpoint.path}: {self.message}")
 
 
 class BadRequest(SomeRandomApiException):
@@ -142,23 +144,23 @@ class TypingError(TypeError):
     ----------
     cls: ``BaseModel``
         The class that the error occurred in.
-    field: :class:`dataclasses.Field`
-        The field that the error occurred in. Use ``field.name`` to get the name of the field (argument).
+    attribute: :class:`Attribute`
+        The attribute that the error occurred in. Use ``attribute.name`` to get the name of the attribute (argument).
     """
 
     def __init__(
-        self, cls: BaseModel, field: Field, value: Any, *, message: Optional[str] = None, **format_kwarg: Any
+        self, cls: BaseModel, attribute: Any, value: Any, *, message: Optional[str] = None, **format_kwarg: Any
     ) -> None:
         self.cls: BaseModel = cls
-        self.field: Field = field
+        self.attribute: Any = attribute
         message = message or "{field_name} must be of type {field_type} not {current_type}."
         message = message.format(
-            field_name=f"'{field.name}'",
+            field_name=f"'{attribute.name}'",
             class_name=f"{cls.__class__.__name__}()",
-            field_type=_utils._get_type(field.type, {}, {})[0].__name__,
+            field_type=_utils._get_type(attribute.type, {}, {})[0],
             current_type=type(value).__name__,
             field_value=value,
             field_value_type=type(value).__name__,
             **format_kwarg,
         )
-        super().__init__(f"Error in class: {cls.__class__.__name__}() and argument: '{field.name}': {message}")
+        super().__init__(f"Error in class: {cls.__class__.__name__}() and argument: '{attribute.name}': {message}")

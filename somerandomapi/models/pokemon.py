@@ -131,6 +131,7 @@ class PokemonAbility(WithNameIDAndEffects):
     __slots__ = ("generation", "description", "_descriptions", "_pokemons")
 
     def __init__(self, payload: PokemonAbilityPayload) -> None:
+        super().__init__(payload)
         self._descriptions = [WithVersion(description) for description in payload["descriptions"]]
         self._pokemons = [PokemonAbilityPokemons(pokemon) for pokemon in payload["pokemons"]]
 

@@ -1,11 +1,9 @@
-from dataclasses import dataclass
-
+from .abc import BaseModel
 
 __all__ = ("ChatbotResult",)
 
 
-@dataclass(frozen=True)
-class ChatbotResult:
+class ChatbotResult(BaseModel, frozen=True, validate_types=False):
     message: str
     """The input message"""
     response: str

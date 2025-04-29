@@ -1,8 +1,7 @@
 from __future__ import annotations
-
-from dataclasses import dataclass
 from typing import Literal, TYPE_CHECKING
 
+from .abc import BaseModel
 from ..enums import ResultType
 
 
@@ -13,8 +12,7 @@ if TYPE_CHECKING:
 __all__ = ("EncodeResult",)
 
 
-@dataclass(frozen=True)
-class EncodeResult:
+class EncodeResult(BaseModel, frozen=True, validate_types=False):
     """Represents the result of an encoding."""
 
     _type: Literal["ENCODE", "DECODE"]

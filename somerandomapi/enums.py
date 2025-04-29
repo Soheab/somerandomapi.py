@@ -2,9 +2,11 @@ from enum import Enum
 
 
 __all__ = (
+    "BaseEnum",
+    "Animu",
     "Animal",
-    "ImgAnimal",
-    "FactAnimal",
+    "Img",
+    "Fact",
     "CanvasFilter",
     "CanvasOverlay",
     "CanvasBorder",
@@ -12,6 +14,7 @@ __all__ = (
     "WelcomeType",
     "WelcomeBackground",
     "WelcomeTextColor",
+    "TweetTheme",
     "ResultType",
 )
 
@@ -21,63 +24,72 @@ class BaseEnum(Enum):
         return self.value if isinstance(self.value, str) else self.name
 
 
+class Animu(BaseEnum):
+    HUG = "hug"
+    PAT = "pat"
+    NOM = "nom"
+    CRY = "cry"
+    KISS = "kiss"
+    POKE = "poke"
+
+
 class Animal(BaseEnum):
     """Enum holding all the animals that can be used in the animal endpoints."""
 
-    BIRD = "bird"
-    CAT = "cat"
-    DOG = "dog"
     FOX = "fox"
-    KANGAROO = "kangaroo"
-    KOALA = "koala"
+    CAT = "cat"
+    BIRD = "bird"
     PANDA = "panda"
     RACCOON = "raccoon"
-    RED_PANDA = "red_panda"
-
-
-class ImgAnimal(BaseEnum):
-    # Can't subclass Animal because of how enums work
-    BIRD = "bird"
-    CAT = "cat"
-    DOG = "dog"
-    FOX = "fox"
-    KANGAROO = "kangaroo"
     KOALA = "koala"
-    PANDA = "panda"
-    RACCOON = "raccoon"
-    RED_PANDA = "red_panda"
-    ## ---------------------
-    PIKACHU = "pikachu"
+    KANGAROO = "kangaroo"
     WHALE = "whale"
-
-
-class FactAnimal(BaseEnum):
-    BIRD = "bird"
-    CAT = "cat"
     DOG = "dog"
+
+
+class Img(BaseEnum):
     FOX = "fox"
-    KOALA = "koala"
+    CAT = "cat"
     PANDA = "panda"
+    RED_PANDA = "red_panda"
+    PIKACHU = "pikachu"
+    RACOON = "racoon"
+    KOALA = "koala"
+    KANGAROO = "kangaroo"
+    WHALE = "whale"
+    DOG = "dog"
+    BIRD = "bird"
+
+
+class Fact(BaseEnum):
+    CAT = "cat"
+    FOX = "fox"
+    PANDA = "panda"
+    KOALA = "koala"
+    KANGAROO = "kangaroo"
+    RACCOON = "raccoon"
+    GIRAFFE = "giraffe"
+    WHALE = "whale"
+    ELEPHANT = "elephant"
+    DOG = "dog"
+    BIRD = "bird"
 
 
 class CanvasFilter(BaseEnum):
+    BLUE = "blue"
     BLURPLE = "blurple"
     BLURPLE_2 = "blurple2"
     BRIGHTNESS = "brightness"
     COLOR = "color"
-    BLUE = "blue"
     GREEN = "green"
-    RED = "red"
-    SEPIA = "sepia"
     GREYSCALE = "greyscale"
     INVERT = "invert"
     INVERT_GREYSCALE = "invertgreyscale"
+    RED = "red"
+    SEPIA = "sepia"
     THRESHOLD = "threshold"
-
-    # from misc but idk why they aren't part of filters
     BLUR = "blur"
     PIXELATE = "pixelate"
-    JPG = "jpg"
 
 
 class CanvasOverlay(BaseEnum):
@@ -85,21 +97,18 @@ class CanvasOverlay(BaseEnum):
     GAY = "gay"
     GLASS = "glass"
     JAIL = "jail"
+    PASSED = "passed"
     TRIGGERED = "triggered"
     WASTED = "wasted"
 
 
 class CanvasBorder(BaseEnum):
-    LESBIAN = "lesbian"
-    NONBINARY = "nonbinary"
-    PANSEXUAL = "pansexual"
     TRANSGENDER = "transgender"
-
-    # lgbt
+    PANSEXUAL = "pansexual"
+    NONBINARY = "nonbinary"
     LGBT = "lgbt"
-    # alises
-    LGBTQPLUS = LGBT
-    LGBTQ2SPLUS = LGBT
+    LESBIAN = "lesbian"
+    BISEXUAL = "bisexual"
 
 
 class CanvasCrop(BaseEnum):
@@ -113,19 +122,19 @@ class WelcomeType(BaseEnum):
 
 
 class WelcomeBackground(BaseEnum):
-    STARS = "stars"
-    STARS2 = "stars2"
-    RAINBOW_GRADIENT = "rainbowgradient"
-    RAINBOW = "rainbow"
-    SUNSET = "sunset"
-    NIGHT = "night"
     BLOBDAY = "blobday"
     BLOBNIGHT = "blobnight"
-    SPACE = "space"
     GAMING1 = "gaming1"
     GAMING2 = "gaming2"
     GAMING3 = "gaming3"
     GAMING4 = "gaming4"
+    NIGHT = "night"
+    RAINBOW = "rainbow"
+    RAINBOW_GRADIENT = "rainbowgradient"
+    SPACE = "space"
+    STARS = "stars"
+    STARS2 = "stars2"
+    SUNSET = "sunset"
 
 
 class WelcomeTextColor(BaseEnum):
@@ -139,6 +148,12 @@ class WelcomeTextColor(BaseEnum):
     PINK = "pink"
     BLACK = "black"
     WHITE = "white"
+
+
+class TweetTheme(BaseEnum):
+    LIGHT = "light"
+    DIM = "dim"
+    DARK = "dark"
 
 
 class ResultType(BaseEnum):

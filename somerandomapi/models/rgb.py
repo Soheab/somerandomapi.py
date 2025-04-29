@@ -1,17 +1,12 @@
-from __future__ import annotations
+from typing import Iterator, Literal
 
-from dataclasses import dataclass
-from typing import Literal, TYPE_CHECKING
+from .abc import BaseModel
 
-
-if TYPE_CHECKING:
-    from typing_extensions import Self
 
 __all__ = ("RGB",)
 
 
-@dataclass(frozen=True)
-class RGB:
+class RGB(BaseModel, frozen=True, validate_types=False):
     """Represents an RGB color."""
 
     r: int
@@ -21,22 +16,6 @@ class RGB:
     b: int
     """The blue value of the color."""
 
-    @classmethod
-    def from_dict(cls, data: dict[Literal["r", "g", "b"], int]) -> Self:
-        """Converts a dictionary to a RGB color.
-
-        Parameters
-        ----------
-        data: :class:`dict`
-            The dictionary to convert.
-
-        Returns
-        -------
-        :class:`RGB`
-            The RGB color.
-        """
-        return cls(**data)
-
     @property
     def as_tuple(self) -> tuple[int, int, int]:
         """Returns the RGB values as a tuple."""
@@ -44,3 +23,10 @@ class RGB:
 
     def __repr__(self) -> str:
         return f"rgb{self.as_tuple}"
+
+    def __iter__(self) -> Iterator[int]:
+        return iter(self.as_tuple)
+
+    def to_dict(self) -> dict[Literal["r", "g", "b"], int]:
+        """Converts the RGB color to a dictionary."""
+        return {"r": self.r, "g": self.g, "b": self.b}

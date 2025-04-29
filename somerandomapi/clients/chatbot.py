@@ -6,20 +6,21 @@ from __future__ import annotations
 
 from functools import partial
 from types import TracebackType
-from typing import Any, Callable, Coroutine, Generator, Literal, Optional, Protocol, Type, TYPE_CHECKING
+from typing import Any, Callable, Coroutine, Generator, Optional, Protocol, Type, TYPE_CHECKING
 
 import aiohttp
 
-from ..internals.endpoints import Chatbot as ChatbotEndpoints
+from ..internals.endpoints import Base
 from ..internals.http import HTTPClient
 from ..models.chatbot import ChatbotResult
+from .. import utils as _utils
 
 
 if TYPE_CHECKING:
     from typing_extensions import Self
 
     from ..clients.client import Client
-    from ..types.chatbot import Chatbot as ChatbotPayload
+    from ..types.http import Chatbot as ChatbotPayload
 
 
 class _ChatbotRequestMethod(Protocol):
@@ -177,33 +178,14 @@ class Chatbot:
     message: Optional[:class:`str`]
         The message to send to the chatbot. This is only used if you use the ``await`` keyword on an instance of this class.
     client: Optional[:class:`.Client`]
-        The client. If this is not provided, you must provide a key and a key_tier.
+        The client.
         This is also used a session if you don't provide one.
-
-    key: Optional[:class:`str`]
-        The key to use. If this is not provided, you must provide a client.
-    key_tier: Optional[:class:`int`]
-        The tier of the key. This is only used if you provide a key and not a client because the tier should already be set on the client unless
     session: Optional[:class:`aiohttp.ClientSession`]
         The session to use. If this is not provided, a new session will be created.
         You are responsible for closing the session if you provide one.
     """
 
-    """
-        Required if ``_handle_ratelimit`` is set to ``True``.
-        This is used for the ratelimit handling.
-        As of writing:
-        - 1: 15 requests per 60 seconds
-        - 2: 30 requests per 60 seconds
-        - 3: 60 requests per 60 seconds
-
-    _handle_ratelimit: :class:`bool`
-        https://some-random-api.com/docs/welcome/ratelimits#chatbot
-        Whether to handle the ratelimit automatically. This is subject to change and should not be relied on.
-        If this is set to ``True``, you must provide either a client or a key and a key_tier.
-    """
-
-    _endpoint = ChatbotEndpoints.CHATBOT
+    _endpoint = Base.CHATBOT
     __request: _ChatbotRequestMethod
     # __ratelimit: Ratelimit
 
@@ -221,88 +203,40 @@ class Chatbot:
         self,
         message: Optional[str] = None,
         *,
-        client: Optional[Client] = None,
-        key: Optional[str] = None,
-        key_tier: Optional[Literal[0, 1, 2, 3]] = None,
-        # _handle_ratelimit: bool = False,
-        session: Optional[aiohttp.ClientSession] = None,
+        client: Client = _utils.NOVALUE,
+        session: aiohttp.ClientSession = _utils.NOVALUE,
     ) -> None:
         self._has_provided_client: bool = client is not None
         self._has_provided_session: bool = session is not None
-        if key_tier is not None and key_tier not in range(4):
-            raise ValueError(f"key_tier must be one of {', '.join(map(str, range(4)))}.")
 
         self._message: Optional[str] = message
         # self._handle_ratelimit: bool = _handle_ratelimit
 
-        self.__handle(client, key, key_tier, session)
+        self.__handle(client, session)
 
     def __handle(
         self,
         client: Optional[Client],
-        key: Optional[str],
-        key_tier: Optional[Literal[0, 1, 2, 3]],
         session: Optional[aiohttp.ClientSession],
         /,
     ) -> None:
         attrs = [
             "request",
-        ]  # "__ratelimit"]
+        ]
         if all(hasattr(self, f"_{self.__class__.__name__}__{attr}") for attr in attrs):
             raise RuntimeError("Chatbot is already initialized.")
-
-        # ratelimit_per_tier = {1: (15, 60), 2: (30, 60), 3: (60, 60)}
-        key_param = self._endpoint.value.parameters["key"]
-
-        actual_key_tier = key_param.key_tier
-        if not client and not key:
-            raise ValueError(
-                (
-                    f"Please provide either a tier {actual_key_tier} or "
-                    f"above key via 'key=` or "
-                    f"a client instance to get the key from with a tier {actual_key_tier} key set via 'client=' or "
-                    "both in the Chatbot constructor."
-                )
-            )
 
         if client:
             self.__http = client._http
             client._Client__chatbot = self  # type: ignore
         else:
             self.__http = HTTPClient(None, session=session)
-        self.__request = partial(self.__http.request, self._endpoint, key=key)
-
-        """
-        if not self._handle_ratelimit:
-            return
-
-        if hasattr(self, f"_{self.__class__.__name__}__ratelimit"):
-            raise RuntimeError("Chatbot is already initialized.")
-
-        if client and client._http._key and client._http._key.tier >= actual_key_tier:
-            self.__ratelimit = Ratelimit(*ratelimit_per_tier[client._http._key.tier])
-        elif key_tier and key_tier >= actual_key_tier:
-            self.__ratelimit = Ratelimit(*ratelimit_per_tier[key_tier])
-        else:
-            raise ValueError(
-                (
-                    f"_handle_ratelimit is True but no {key_tier} or above tier key was provided. "
-                    "Please either pass one in the Chatbot constructor or set it on the Client. "
-                    "Or set _handle_ratelimit to False."
-                )
-            )
-        """
+        self.__request = partial(
+            self.__http.request,
+            self._endpoint,
+        )
 
     async def __do_request(self, message: str) -> ChatbotResult:
-        """
-        if self._handle_ratelimit and self.__ratelimit:
-            self.__ratelimit._tries += 1
-            if self.__ratelimit._almost_ratelimited() and (retry_after := self.__ratelimit.retry_after()):
-                print("Waiting", retry_after, "seconds...")
-                await asyncio.sleep(int(retry_after))
-                self.__ratelimit.maybe_reset()
-        """
-
         res = await self.__request(message=message)
         return ChatbotResult(message=message, response=res["response"])
 

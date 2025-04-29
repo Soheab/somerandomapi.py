@@ -3,19 +3,22 @@ from typing import Literal, TypedDict
 from .http import WithLink
 
 
-Animus = Literal[
-    "facepalm",
-    "hug",
+ValidAnimu = Literal[
+    "nom",
+    "poke",
+    "cry",
+    "kiss",
     "pat",
-    "wink",
-    "quote",
+    "hug",
 ]
 
 
-class Animu(WithLink): ...
+class Animu(WithLink):
+    type: ValidAnimu
 
 
 class AnimuQuote(TypedDict):
-    sentence: str
-    character: str
+    quote: str
     anime: str
+    id: int
+    name: str

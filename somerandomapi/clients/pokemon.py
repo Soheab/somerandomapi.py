@@ -19,10 +19,10 @@ class PokemonClient:
     This class is not meant to be instantiated by the user. Instead, access it through the :attr:`~somerandomapi.Client.pokemon` attribute of the :class:`~somerandomapi.Client` class.
     """
 
-    __slots__ = ("__http",)
+    __slots__ = ("_http",)
 
     def __init__(self, http) -> None:
-        self.__http: HTTPClient = http
+        self._http: HTTPClient = http
 
     async def get_ability(self, ability: str) -> PokemonAbility:
         """Get a pokemon ability's information.
@@ -37,7 +37,7 @@ class PokemonClient:
         :class:`PokemonAbility`
             Object representing the pokemon ability.
         """
-        res = await self.__http.request(PokemonEndpoints.ABILITIES, ability=ability)
+        res = await self._http.request(PokemonEndpoints.ABILITIES, ability=ability)
         return PokemonAbility(res)
 
     async def get_item(self, item: str) -> PokemonItem:
@@ -54,7 +54,7 @@ class PokemonClient:
         :class:`PokemonItem`
             Object representing the pokemon item.
         """
-        res = await self.__http.request(PokemonEndpoints.ITEMS, item=item)
+        res = await self._http.request(PokemonEndpoints.ITEMS, item=item)
         return PokemonItem(res)
 
     async def get_moves(self, move: str) -> PokemonMove:
@@ -70,7 +70,7 @@ class PokemonClient:
         :class:`PokemonMove`
             Object representing the pokemon move.
         """
-        res = await self.__http.request(PokemonEndpoints.MOVES, move=move)
+        res = await self._http.request(PokemonEndpoints.MOVES, move=move)
         return PokemonMove(res)
 
     async def get_pokedex(self, pokemon: str) -> PokeDex:
@@ -86,5 +86,5 @@ class PokemonClient:
         :class:`PokeDex`
             Object representing the pokedex entry.
         """
-        res = await self.__http.request(PokemonEndpoints.POKEDEX, pokemon=pokemon)
+        res = await self._http.request(PokemonEndpoints.POKEDEX, pokemon=pokemon)
         return PokeDex(res)
