@@ -26,4 +26,4 @@ class Tweet(BaseImageModel):
     retweets: int | None = None
     """Optional[:class:`int`]: The amount of retweets the tweet is supposed to have."""
     theme: TweetTheme | None = TweetTheme.LIGHT
-    """:class:`TweetTheme`: The theme of the tweet. Defaults to :attr:`TweetTheme.LIGHT`."""
+    """:class:`~somerandomapi.enums.TweetTheme`: The theme of the tweet. Defaults to :attr:`~somerandomapi.enums.TweetTheme.LIGHT`."""

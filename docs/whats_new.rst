@@ -8,20 +8,29 @@ Changelog
 This page keeps a detailed human friendly rendering of what's new and changed
 in specific versions.
 
+v0.1.0
+------
+
+Big update!
+
 v0.0.7
 ------
 
 - Fix `discriminator` field in relevant classes and methods:
+
   - :meth:`.Client.welcome_image`
   - :class:`.PremiumClient`
   - :class:`.Rankcard`
   - :class:`.WelcomeFree`
   - :class:`WelcomePremium`
-It would previously raise an error if the discriminator was provided.
+  
+  It would previously raise an error if the discriminator was provided.
 
 - Fix an internal error when the API returns an unexpected status code.
 - Fix unparsed TypingError.
-Sometimes it would send "_UnionGenericAlias" in the error message instead of the actual field type. This was fixed by always parsing the field's type.
+  Sometimes it would send "_UnionGenericAlias" in the error message instead of 
+  the actual field type. This issue was fixed by always parsing the 
+  field's type.
 
 **Full Changelog**: https://github.com/Soheab/somerandomapi.py/compare/0.0.6...0.0.7
 
@@ -56,7 +65,7 @@ v0.0.3
 -------
 
 - Correct base API URL. URL changed from ``https://some-random-api.ml/`` to ``https://some-random-api.com/``.
-- Fix mistake in :class:`.AnimalClient.get_image_and_fact`
+- Fix mistake in :meth:`.AnimalClient.get_image_and_fact`
 - Fix enum conversion errors
 - Fix link to API in documentation.
 

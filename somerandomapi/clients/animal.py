@@ -141,7 +141,7 @@ class AnimalClient(BaseClient):
 
         Parameters
         ----------
-        animal: Union[:class:`.Animal`, :class:`.ImgAnimal`, :class:`.FactAnimal`, :class:`str`]
+        animal: Union[:class:`.Animal`, :class:`.Img`, :class:`.Fact`, :class:`str`]
             The animal to get an image or fact or both of.
 
         Returns

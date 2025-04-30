@@ -1,6 +1,9 @@
 from .abc import BaseModel
 
-__all__ = ("AnimalImageOrFact",)
+__all__ = (
+    "AnimalImageFact",
+    "AnimalImageOrFact",
+)
 
 
 class AnimalImageFact(BaseModel, frozen=True, validate_types=False):

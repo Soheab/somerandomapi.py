@@ -7,7 +7,7 @@ __all__ = ("AnimuQuote",)
 class AnimuQuote(BaseModel, frozen=True, validate_types=False):
     """Represents an animu quote.
 
-    This class is not meant to be instantiated by the user. Instead, access it through the :meth:`~somerandomapi.AnimuClient.quote` method of the :class:`~somerandomapi.AnimuClient` class.
+    This class is not meant to be instantiated by the user. Instead, access it through the :meth:`~somerandomapi.AnimuClient.random_quote` method of the :class:`~somerandomapi.AnimuClient` class.
     """
 
     quote: str

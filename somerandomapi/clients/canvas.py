@@ -218,7 +218,7 @@ class CanvasClient(BaseClient):
         return await self._handle_filters(CanvasFilter.COLOR, avatar_url, color=color)
 
     async def colour_filter(self, avatar_url: str, colour: str) -> Image:
-        """Alias for :meth:`.filter_color`."""
+        """Alias for :meth:`.color_filter`."""
         # this is a bit of a hack, but i want the error message to say "colour" instead of "color"
         try:
             return await self._handle_filters(CanvasFilter.COLOR, avatar_url, color=colour)
