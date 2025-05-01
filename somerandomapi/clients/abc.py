@@ -14,7 +14,7 @@ from typing import (
     Concatenate,
     overload,
 )
-from functools import partial, wraps
+from functools import wraps
 
 if TYPE_CHECKING:
     from ..internals.http import HTTPClient

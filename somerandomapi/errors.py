@@ -6,8 +6,6 @@ from . import utils as _utils
 
 
 if TYPE_CHECKING:
-    from dataclasses import Field
-
     from .models.abc import BaseModel
     from .internals.endpoints import Endpoint
 
