@@ -46,6 +46,9 @@ docs = [
     "sphinx-autodoc-typehints>=3.2,<4",
     "enum-tools[sphinx]>=0.13,<0.14",
 ]
+dev = [
+    "ruff==0.11.8",
+]
 
 
 [tool.setuptools]
