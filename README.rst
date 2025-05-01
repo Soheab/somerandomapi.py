@@ -7,16 +7,6 @@ Welcome to somerandomapi.py!
 =============================
 An actively maintained wrapper for the `somerandomapi API <https://somerandomapi.com>`_.
 
-.. toctree::
-   :caption: API Reference
-   :maxdepth: 1
-
-   clients
-   enums
-   models
-   errors
-   whats_new
-
 Installation
 +++++++++++++
 Install the stable version from PyPI using pip:
