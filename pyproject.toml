@@ -1,6 +1,6 @@
 [project]
 name = "somerandomapi.py"
-description = "A maintained wrapper for the somerandomapi API."
+description = "An actively maintained wrapper for the somerandomapi API."
 authors = [{ name = "Soheab_" }]
 requires-python = ">=3.11"
 keywords = [
