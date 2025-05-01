@@ -35,11 +35,6 @@ class WelcomeFree(BaseImageModel):
     
     Will be stripped if equal to 0
     """
-    key: str | None = attribute(default=None, repr=False)
-    """The key, doesn't need to be active.
-    
-    This is required if no key was passed to the Client constructor.
-    """
     font: Literal[0, 1, 2, 3, 4, 5, 6, 7] | None = attribute(default=None, range=(0, 7))
     """The font from a predefined list. Choose a number between 0 and 7.
     
