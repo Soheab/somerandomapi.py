@@ -67,7 +67,7 @@ repository = "https://github.com/Soheab/somerandomapi.py"
 
 [tool.setuptools.dynamic]
 version = { attr = "somerandomapi.__version__" }
-readme = { file = ["README.md"], content-type = "text/markdown" }
+readme = { file = ["README.rst"], content-type = "text/x-rst" }
 
 [tool.pyright]
 include = [
