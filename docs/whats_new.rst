@@ -8,6 +8,11 @@ Changelog
 This page keeps a detailed, human-friendly rendering of what's new and changed
 in specific versions.
 
+v0.1.1
+-------
+
+Just for PyPi because v0.1.0 already uploaded to PyPi but something went wrong with it.
+
 v0.1.0
 -------
 
