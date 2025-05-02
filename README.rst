@@ -9,7 +9,7 @@ An actively maintained wrapper for the `somerandomapi API <https://somerandomapi
 
 Installation
 +++++++++++++
-Install the stable version from PyPI using pip:
+Install the stable version from `PyPI <https://pypi.org/project/somerandomapi.py/>`_ using pip:
 
 .. code-block:: bash
 
