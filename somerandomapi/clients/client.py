@@ -17,6 +17,7 @@ from ..models.encoding import EncodeResult
 from ..models.lyrics import Lyrics
 from ..models.rgb import RGB
 from ..models.welcome.free import WelcomeFree
+from .abc import BaseClient
 from .chatbot import Chatbot
 
 if TYPE_CHECKING:
@@ -32,7 +33,7 @@ __all__ = ("Client",)
 _log: logging.Logger = logging.getLogger(__name__)
 
 
-class Client:
+class Client(BaseClient):
     """Client for interacting with the Some Random API.
 
     This class provides access to all endpoints of the Some Random API, including both free and premium features.
@@ -52,10 +53,7 @@ class Client:
         .. versionadded:: 0.1.0
     """
 
-    __slots__: tuple[str, ...] = (
-        "__chatbot",
-        "_http",
-    )
+    __slots__: tuple[str, ...] = (*(BaseClient.__slots__), "__chatbot")
 
     def __init__(
         self,
@@ -63,7 +61,8 @@ class Client:
         *,
         session: aiohttp.ClientSession = _utils.NOVALUE,
     ) -> None:
-        self._http = HTTPClient(token, session)
+        http = HTTPClient(token, session)
+        super().__init__(http)
         self.__chatbot: Chatbot | None = None
 
     async def __aenter__(self) -> Self:

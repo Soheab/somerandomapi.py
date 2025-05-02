@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Literal, overload
 
+from somerandomapi.clients.animal import BaseClient
+
 from .. import utils as _utils
 from ..internals.endpoints import Premium as PremiumEndpoint
 from ..models.rankcard import Rankcard
@@ -9,23 +11,17 @@ from ..models.welcome.premium import WelcomePremium
 
 if TYPE_CHECKING:
     from ..enums import WelcomeTextColor, WelcomeType
-    from ..internals.http import HTTPClient
     from ..models.image import Image
 
 __all__ = ("PremiumClient",)
 
 
-class PremiumClient:
+class PremiumClient(BaseClient):
     """Represents the "Premium" endpoint.
 
     This class is not meant to be instantiated by the user. Instead, access it through the
     :attr:`~somerandomapi.Client.premium` attribute of the :class:`~somerandomapi.Client` class.
     """
-
-    __slots__ = ("_http",)
-
-    def __init__(self, http) -> None:
-        self._http: HTTPClient = http
 
     async def amongus(
         self,
