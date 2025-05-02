@@ -88,7 +88,7 @@ See more examples in the `examples directory on GitHub <https://github.com/Sohea
 
 Documentation
 ++++++++++++++
-Visit the full documentation at: https://somerandomapi.py.readthedocs.io
+Visit the full documentation at: https://somerandomapipy.readthedocs.io
 
 Contact
 ++++++++
