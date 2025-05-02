@@ -39,10 +39,6 @@ NumbersTill255 = Literal[
 ]
 # fmt: on
 
-if TYPE_CHECKING:
-    from ..internals.http import HTTPClient
-
-
 __all__ = ("CanvasClient",)
 
 
@@ -52,11 +48,6 @@ class CanvasClient(BaseClient):
     This class is not meant to be instantiated by you. Instead, access it through the :attr:`~somerandomapi.Client.canvas`
     attribute of the :class:`~somerandomapi.Client`.
     """
-
-    __slots__ = (*BaseClient.__slots__, "__filter_client")
-
-    def __init__(self, http) -> None:
-        self._http: HTTPClient = http
 
     @property
     def memes(self) -> CanvasMemes:
