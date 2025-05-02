@@ -135,7 +135,7 @@ class AnimalClient(BaseClient):
         animal: enums.Animal | AnimalsLiterals | enums.Img | ImgAnimalsLiterals | enums.Fact | FactsAnimalsLiterals,
     ) -> AnimalImageOrFact:
         """A helper method to get either an image or a fact or both about an animal since the API
-        provides different endpoins for each.t
+        provides different endpoints for each.
 
         .. versionadded:: 0.1.0
 
