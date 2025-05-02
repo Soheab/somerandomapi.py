@@ -17,7 +17,7 @@ async def chat():
     # async with sr_api.chatbot(client=sr_api) as chatbot:
     #     result = await chatbot.send(message)
     # print the message
-    print(f"Reponse to {result.message}: {result.response}")
+    print(f"Response to {result.message}: {result.response}")
 
 
 # run the function

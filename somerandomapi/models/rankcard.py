@@ -1,84 +1,72 @@
-from dataclasses import dataclass, field
-from typing import Optional, TYPE_CHECKING
+from typing import Literal
 
 from .. import utils as _utils
 from ..internals.endpoints import Premium
-from .abc import BaseImageModel
-
+from .abc import BaseImageModel, attribute
 
 __all__ = ("Rankcard",)
 
 
-@dataclass
 class Rankcard(BaseImageModel):
     """Represents a rank card."""
 
-    _endpoint = Premium.RANK_CARD
+    __endpoint__ = Premium.RANK_CARD
 
-    username: str = field(metadata={"max_length": 32})
+    template: Literal[1, 2, 3, 4, 5, 6, 7, 8, 9]
+    """The template to use. Must be a number between 1 and 9.
+    
+    .. versionadded:: 0.1.0
+    """
+    username: str = attribute(max_length=32)
     """The username of the user. Max 32 characters."""
-    avatar_url: str = field(metadata={"alias_of": "avatar"})
+    avatar_url: str = attribute(data_name="avatar")
     """The avatar URL of the user. Must be .png or .jpg."""
     level: int
     """The current level of the user."""
-    current_xp: int = field(metadata={"alias_of": "cxp"})
+    current_xp: int = attribute(data_name="cxp")
     """The current XP of the user."""
-    needed_xp: int = field(metadata={"alias_of": "nxp"})
+    needed_xp: int = attribute(data_name="nxp")
     """The needed XP to level up."""
-    discriminator: Optional[int] = field(default=None, metadata={"min_length": 1, "max_length": 4})
+    discriminator: int | None = attribute(default=None, min_length=1, max_length=4, forced_type=str)
     """The discriminator of the user.
     
     Will be stripped if equal to 0
     """
-    key: Optional[str] = None
-    """The API key for the rank card. Not required if you have a key set in the client."""
-    background_url: Optional[str] = field(default=None, metadata={"alias_of": "bg"})
+    background_url: str | None = attribute(default=None, data_name="bg")
     """The custom background of the rank card as url. Tier 2+ key required.
     
     This cannot be used with background_color.
     """
-    background_color: Optional[str] = field(default=None, metadata={"alias_of": "cbg"})
+    background_color: str | None = attribute(default=None, data_name="cbg")
     """The custom background color of the rank card. Tier 1+ key required.
 
     Can put "random" to get a random color.
     
     This cannot be used with background.
     """
-    text_color: Optional[str] = field(default=None, metadata={"alias_of": "ctext"})
+    text_color: str | None = attribute(default=None, data_name="ctext")
     """The custom text color of the rank card as hex.
     
     Can put "random" to get a random color.
     """
-    current_xp_color: Optional[str] = field(default=None, metadata={"alias_of": "ccxp"})
+    current_xp_color: str | None = attribute(default=None, data_name="ccxp")
     """The color of the current XP as hex.
 
     Can put "random" to get a random color.
     """
-    xp_bar_color: Optional[str] = field(default=None, metadata={"alias_of": "cbar"})
+    xp_bar_color: str | None = attribute(default=None, data_name="cbar")
     """The color of the XP bar as hex.
 
     Can put "random" to get a random color.
     """
+    username_color: str | None = attribute(default=None, data_name="ctag")
+    """The color of the username as hex.
 
-    if TYPE_CHECKING:
+    Can put "random" to get a random color.
 
-        @classmethod
-        def from_dict(
-            cls,
-            *,
-            username: str,
-            avatar: str,
-            level: int,
-            cxp: int,
-            nxp: int,
-            discriminator: Optional[int] = None,
-            key: Optional[str] = None,
-            bg: Optional[str] = None,
-            cbg: Optional[str] = None,
-            ctext: Optional[str] = None,
-            ccxp: Optional[str] = None,
-            cbar: Optional[str] = None,
-        ): ...
+    .. versionadded:: 0.1.0
+    
+    """
 
     def __post_init__(self) -> None:
         COLOR_ERROR = "Invalid {0} color. Must be a valid hex color or 'random'. Valid formats: '#000000', 0x000000, 000000"
@@ -97,6 +85,10 @@ class Rankcard(BaseImageModel):
         if self.xp_bar_color is not None:
             if not (color := _utils._check_colour_value(self.xp_bar_color)):
                 raise ValueError(COLOR_ERROR.format("xp bar"))
-            self.bar_color = color
+            self.xp_bar_color = color
+        if self.username_color is not None:
+            if not (color := _utils._check_colour_value(self.username_color)):
+                raise ValueError(COLOR_ERROR.format("username"))
+            self.username_color = color
 
-        self.__class__._validate_types(self, globals(), locals())
+        super().__post_init__()

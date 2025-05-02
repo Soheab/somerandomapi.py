@@ -1,20 +1,12 @@
-from __future__ import annotations
-
-from dataclasses import dataclass
-from typing import Literal, TYPE_CHECKING
+from typing import Literal, Self
 
 from ..enums import ResultType
-
-
-if TYPE_CHECKING:
-    from typing_extensions import Self
-
+from .abc import BaseModel
 
 __all__ = ("EncodeResult",)
 
 
-@dataclass(frozen=True)
-class EncodeResult:
+class EncodeResult(BaseModel, frozen=True, validate_types=False):
     """Represents the result of an encoding."""
 
     _type: Literal["ENCODE", "DECODE"]
@@ -26,6 +18,9 @@ class EncodeResult:
     text: str
     """The encoded/decoded text."""
 
+    def __str__(self) -> str:
+        return self.text
+
     @property
     def type(self) -> ResultType:
         """The type of the result."""
@@ -33,7 +28,7 @@ class EncodeResult:
 
     def to_dict(self) -> dict[Literal["encode", "decode"], str]:
         """Converts this model to a dictionary."""
-        return {self._type.lower(): self.input}  # type: ignore
+        return {self._type.lower(): self.input}  # pyright: ignore[reportReturnType]
 
     @classmethod
     def from_dict(

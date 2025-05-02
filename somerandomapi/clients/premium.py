@@ -1,38 +1,34 @@
 from __future__ import annotations
 
-from typing import Literal, Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING, Literal, overload
+
+from somerandomapi.clients.animal import BaseClient
 
 from .. import utils as _utils
 from ..internals.endpoints import Premium as PremiumEndpoint
 from ..models.rankcard import Rankcard
 from ..models.welcome.premium import WelcomePremium
 
-
 if TYPE_CHECKING:
     from ..enums import WelcomeTextColor, WelcomeType
-    from ..internals.http import HTTPClient
     from ..models.image import Image
 
 __all__ = ("PremiumClient",)
 
 
-class PremiumClient:
+class PremiumClient(BaseClient):
     """Represents the "Premium" endpoint.
 
-    This class is not meant to be instantiated by the user. Instead, access it through the :attr:`~somerandomapi.Client.premium` attribute of the :class:`~somerandomapi.Client` class.
+    This class is not meant to be instantiated by the user. Instead, access it through the
+    :attr:`~somerandomapi.Client.premium` attribute of the :class:`~somerandomapi.Client` class.
     """
-
-    __slots__ = ("__http",)
-
-    def __init__(self, http) -> None:
-        self.__http: HTTPClient = http
 
     async def amongus(
         self,
         avatar: str,
         username: str,
-        key: Optional[str] = None,
-        custom_text: Optional[str] = None,
+        key: str | None = None,
+        custom_text: str | None = None,
     ) -> Image:
         """Create a custom AmongUs ejecting animation.
 
@@ -52,7 +48,7 @@ class PremiumClient:
         :class:`Image`
             Object representing the generated image.
         """
-        return await self.__http.request(
+        return await self._http.request(
             PremiumEndpoint.AMONGUS,
             avatar=avatar,
             username=username,
@@ -73,24 +69,50 @@ class PremiumClient:
         :class:`Image`
             The petpet image.
         """
-        return await self.__http.request(PremiumEndpoint.PETPET, avatar=avatar)
+        return await self._http.request(PremiumEndpoint.PETPET, avatar=avatar)
+
+    @overload
+    async def rankcard(
+        self,
+        obj: Rankcard,
+    ) -> Rankcard: ...
+
+    @overload
+    async def rankcard(
+        self,
+        *,
+        template: Literal[1, 2, 3, 4, 5, 6, 7, 8, 9],
+        username: str,
+        avatar_url: str,
+        level: int,
+        current_xp: int,
+        needed_xp: int,
+        discriminator: int | None = ...,
+        background_url: str | None = ...,
+        background_color: str | None = ...,
+        text_color: str | None = ...,
+        current_xp_color: str | None = ...,
+        xp_bar_color: str | None = ...,
+        username_color: str | None = ...,
+    ) -> Rankcard: ...
 
     async def rankcard(
         self,
-        obj: Optional[Rankcard] = None,
+        obj: Rankcard = _utils.NOVALUE,
         *,
-        username: Optional[str] = None,
-        avatar_url: Optional[str] = None,
-        discriminator: Optional[int] = None,
-        level: Optional[int] = None,
-        current_xp: Optional[int] = None,
-        needed_xp: Optional[int] = None,
-        key: Optional[str] = None,
-        background_url: Optional[str] = None,
-        background_color: Optional[str] = None,
-        text_color: Optional[str] = None,
-        current_xp_color: Optional[str] = None,
-        xp_bar_color: Optional[str] = None,
+        template: Literal[1, 2, 3, 4, 5, 6, 7, 8, 9] = _utils.NOVALUE,
+        username: str = _utils.NOVALUE,
+        avatar_url: str = _utils.NOVALUE,
+        level: int = _utils.NOVALUE,
+        current_xp: int = _utils.NOVALUE,
+        needed_xp: int = _utils.NOVALUE,
+        discriminator: int | None = _utils.NOVALUE,
+        background_url: str | None = _utils.NOVALUE,
+        background_color: str | None = _utils.NOVALUE,
+        text_color: str | None = _utils.NOVALUE,
+        current_xp_color: str | None = _utils.NOVALUE,
+        xp_bar_color: str | None = _utils.NOVALUE,
+        username_color: str | None = _utils.NOVALUE,
     ) -> Rankcard:
         """Generate a custom rankcard.
 
@@ -110,8 +132,6 @@ class PremiumClient:
             The current XP. Required if `obj` is not passed.
         needed_xp: Optional[:class:`int`]
             The needed XP. Required if `obj` is not passed.
-        key: Optional[:class:`str`]
-            The key. At least tier 2. Required if no key is passed to the client.
         background_url: Optional[:class:`str`]
             The background URL. Cannot be used with `background_color`.
         background_color: Optional[:class:`str`]
@@ -122,44 +142,68 @@ class PremiumClient:
             The current XP color hex.
         xp_bar_color: Optional[:class:`str`]
             The XP bar color hex.
+        username_color: Optional[:class:`str`]
+            The username color hex.
         """
         values = (
+            ("template", template, True),
             ("username", username, True),
             ("avatar_url", avatar_url, True),
             ("level", level, True),
             ("current_xp", current_xp, True),
             ("needed_xp", needed_xp, True),
             ("discriminator", discriminator, False),
-            ("key", key, False),
             ("background_url", background_url, False),
             ("background_color", background_color, False),
             ("text_color", text_color, False),
             ("current_xp_color", current_xp_color, False),
             ("xp_bar_color", xp_bar_color, False),
+            ("username_color", username_color, False),
         )
-        endpoint = PremiumEndpoint.WELCOME
+        endpoint = PremiumEndpoint.RANK_CARD
 
         obj = _utils._handle_obj_or_args(Rankcard, obj, values).copy()
-        res = await self.__http.request(endpoint, **obj.to_dict())
+        res = await self._http.request(endpoint, **obj.to_dict())
         new = obj.copy()
         new._set_image(res)
         return new
 
+    @overload
     async def welcome_image(
         self,
-        obj: Optional[WelcomePremium] = None,
+        obj: WelcomePremium,
+    ) -> WelcomePremium: ...
+
+    @overload
+    async def welcome_image(
+        self,
         *,
-        template: Optional[Literal[1, 2, 3, 4, 5, 6, 7, 8]] = None,
-        type: Optional[WelcomeType] = None,
-        username: Optional[str] = None,
-        avatar_url: Optional[str] = None,
-        discriminator: Optional[int] = None,
-        server_name: Optional[str] = None,
-        member_count: Optional[int] = None,
-        text_color: Optional[WelcomeTextColor] = None,
-        key: Optional[str] = None,
-        background_url: Optional[str] = None,
-        font: Optional[Literal[0, 1, 2, 3, 4, 5, 6, 7]] = None,
+        template: Literal[1, 2, 3, 4, 5, 6, 7],
+        type: WelcomeType,
+        username: str,
+        avatar_url: str,
+        discriminator: int,
+        server_name: str,
+        member_count: int,
+        text_color: WelcomeTextColor,
+        background_url: str | None = _utils.NOVALUE,
+        font: Literal[0, 1, 2, 3, 4, 5, 6, 7] | None = _utils.NOVALUE,
+    ) -> WelcomePremium: ...
+
+    async def welcome_image(
+        self,
+        obj: WelcomePremium = _utils.NOVALUE,
+        *,
+        template: Literal[1, 2, 3, 4, 5, 6, 7] = _utils.NOVALUE,
+        type: WelcomeType = _utils.NOVALUE,  # noqa: A002
+        username: str = _utils.NOVALUE,
+        avatar_url: str = _utils.NOVALUE,
+        discriminator: int = _utils.NOVALUE,
+        server_name: str = _utils.NOVALUE,
+        member_count: int = _utils.NOVALUE,
+        text_color: WelcomeTextColor = _utils.NOVALUE,
+        background_url: str | None = _utils.NOVALUE,
+        font: Literal[0, 1, 2, 3, 4, 5, 6, 7] | None = _utils.NOVALUE,
     ) -> WelcomePremium:
         """Generate a custom welcome image.
 
@@ -167,7 +211,7 @@ class PremiumClient:
         ----------
         obj: Optional[:class:`WelcomePremium`]
             The object to use. If not passed, the other parameters will be used and a new object will be created.
-        template: Optional[Literal[1, 2, 3, 4, 5, 6, 7, 8]`
+        template: Optional[Literal[1, 2, 3, 4, 5, 6, 7]`
             The template to use. Must be a number between 1 and 7. Required if `obj` is not passed.
         type: Optional[:class:`.WelcomeType`]
             The type of welcome card. Required if `obj` is not passed.
@@ -183,13 +227,13 @@ class PremiumClient:
             The member count. Required if `obj` is not passed.
         text_color: Optional[:class:`.WelcomeTextColor`]
             The text color. Required if `obj` is not passed.
-        key: Optional[:class:`str`]
-            The key. At least tier 2. Required if no key is passed to the client.
+        background_url: Optional[:class:`str`]
+            The background URL.
         font: Optional[:class:`int`]
             The font from a predefined list. Choose a number between 0 and 7.
 
-            .. versionchanged:: 0.0.8
-                The library sets the font to 7 if it's greater than 8 as the API only accepts a range of 0-7 now.
+            .. versionchanged:: 0.1.0
+                This takes a range of 0-7 now instead of 0-8.
 
         """
         values = (
@@ -202,13 +246,12 @@ class PremiumClient:
             ("member_count", member_count, True),
             ("text_color", text_color, True),
             ("discriminator", discriminator, False),
-            ("key", key, False),
             ("font", font, False),
         )
         endpoint = PremiumEndpoint.WELCOME
 
         obj = _utils._handle_obj_or_args(WelcomePremium, obj, values).copy()
-        res = await self.__http._welcome_card(endpoint, obj)
+        res = await self._http.request(endpoint, **obj.to_dict())
         new = obj.copy()
         new._set_image(res)
         return new

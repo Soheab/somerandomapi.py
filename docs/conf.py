@@ -7,15 +7,16 @@
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
 project = "somerandomapi.py"
-copyright = "2023, Soheab_"
+copyright = "2023-2025, Soheab_"
 author = "Soheab_"
-release = "0.0.1"
+release = "0.1.0"
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
 import os
 import sys
+from typing import Any
 
 
 # If extensions (or modules to document with autodoc) are in another directory,
@@ -88,6 +89,24 @@ typehints_use_signature = False
 # kept getting the following warnings:
 # WARNING: py:class reference target not found: _io.BytesIO
 # WARNING: py:class reference target not found: somerandomapi.models.image.FileLike
+# somerandomapi.errors.TypingError:15: WARNING: py:class reference target not found: Attribute [ref.class]
 # and these two lines seemed to fix it.
 nitpicky = True
-nitpick_ignore = [("py:class", "_io.BytesIO"), ("py:class", "somerandomapi.models.image.FileLike")]
+# fmt: off
+nitpick_ignore = [
+    ("py:class", "_io.BytesIO"),
+    ("py:class", "somerandomapi.models.image.FileLike"),
+    ("py:class", "Attribute")
+]
+# fmt: on
+
+def autodoc_process_signature(app, what, name, obj, options, signature, return_annotation) -> tuple[Any, Any]:
+    if obj.__class__.__name__ == "Attribute":
+        # hides the "= <object xxxx Attribute>" part from the signature, that's only used internally.
+        options["no-value"] = True
+        return "", return_annotation
+    return signature, return_annotation
+
+
+def setup(app):
+    app.connect("autodoc-process-signature", autodoc_process_signature)

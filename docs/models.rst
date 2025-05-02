@@ -23,10 +23,6 @@ ChatbotResult
 
 .. autoclass:: ChatbotResult()
 
-Dictionary
-~~~~~~~~~~~
-
-.. autoclass:: Dictionary()
 
 EncodeResult
 ~~~~~~~~~~~~~
@@ -41,13 +37,7 @@ Image
 Lyrics
 ~~~~~~~
 
-**Lyrics**
-
 .. autoclass:: Lyrics()
-
-**LyricsLinks**
-
-.. autoclass:: LyricsLinks()
 
 GenshinNamecard
 ~~~~~~~~~~~~~~~~
@@ -129,7 +119,7 @@ WithNameID
 Rankcard
 ~~~~~~~~~~
 
-.. autoclass:: Rankcard
+.. autoclass:: Rankcard()
 
 
 RGB
@@ -141,13 +131,13 @@ RGB
 Tweet
 ~~~~~~
 
-.. autoclass:: Tweet
+.. autoclass:: Tweet()
 
 
 YoutubeComment
 ~~~~~~~~~~~~~~~
 
-.. autoclass:: YoutubeComment
+.. autoclass:: YoutubeComment()
 
 
 Welcome
@@ -157,9 +147,9 @@ Classes to generate a welcome image.
 
 **WelcomeFree**
 
-.. autoclass:: WelcomeFree
+.. autoclass:: WelcomeFree()
 
 
 **WelcomePremium**
 
-.. autoclass:: WelcomePremium
+.. autoclass:: WelcomePremium()

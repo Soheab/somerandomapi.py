@@ -1,13 +1,17 @@
 from typing import Literal, TypedDict
 
-
-Animals = Literal[
-    "bird",
+ValidFact = Literal[
     "cat",
-    "dog",
     "fox",
-    "koala",
     "panda",
+    "koala",
+    "kangaroo",
+    "racoon",
+    "giraffe",
+    "whale",
+    "elephant",
+    "dog",
+    "bird",
 ]
 
 

@@ -1,4 +1,4 @@
-from typing import List, TypedDict
+from typing import TypedDict
 
 
 class WithName(TypedDict):
@@ -29,16 +29,16 @@ class PokemonAbilityPokemons(TypedDict):
 class PokemonAbility(WithNameIDAndEffects):
     generation: int
     description: str
-    pokemons: List[PokemonAbilityPokemons]
-    descriptions: List[WithVersion]
+    pokemons: list[PokemonAbilityPokemons]
+    descriptions: list[WithVersion]
 
 
 class PokemonItem(WithNameIDAndEffects):
     cost: int
-    attributes: List[str]
+    attributes: list[str]
     category: str
     sprite: str
-    descriptions: List[WithVersionAndDescription]
+    descriptions: list[WithVersionAndDescription]
 
 
 class PokemonMove(WithNameIDAndEffects):
@@ -49,8 +49,8 @@ class PokemonMove(WithNameIDAndEffects):
     pp: int
     power: int
     accuracy: int
-    pokemon: List[str]
-    descriptions: List[WithVersionAndDescription]
+    pokemon: list[str]
+    descriptions: list[WithVersionAndDescription]
 
 
 class PokeDexStats(TypedDict):
@@ -65,7 +65,7 @@ class PokeDexStats(TypedDict):
 
 class PokeDexFamily(TypedDict):
     evolutionStage: int
-    evolutionLine: List[str]
+    evolutionLine: list[str]
 
 
 class PokeDexSprites(TypedDict):
@@ -75,14 +75,14 @@ class PokeDexSprites(TypedDict):
 
 class PokeDex(WithName):
     id: str
-    type: List[str]
-    species: List[str]
-    abilities: List[str]
+    type: list[str]
+    species: list[str]
+    abilities: list[str]
     height: str
     weight: str
     base_experience: str
-    gender: List[str]
-    egg_groups: List[str]
+    gender: list[str]
+    egg_groups: list[str]
     stats: PokeDexStats
     family: PokeDexFamily
     sprites: PokeDexSprites

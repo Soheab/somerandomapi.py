@@ -5,9 +5,8 @@ All the public models for the API.
 """
 
 from .animal_fact import *
-from .animu_quote import *
+from .animu import *
 from .chatbot import *
-from .dictionary import *
 from .encoding import *
 from .image import *
 from .lyrics import *
