@@ -9,6 +9,6 @@ from .enums import *
 from .errors import *
 from .models import *
 
-__version__ = "0.1.0a"
+__version__ = "0.1.0"
 __author__ = "Soheab"
 __license__ = "MPL-2.0"
