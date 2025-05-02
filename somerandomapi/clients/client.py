@@ -1,15 +1,15 @@
 from __future__ import annotations
 
+from typing import TYPE_CHECKING, Literal, Self, overload
 import logging
-from typing import TYPE_CHECKING, Any, Literal, Optional, Union, overload
 
 import aiohttp
 
 from .. import utils as _utils
 from ..enums import WelcomeBackground, WelcomeTextColor, WelcomeType
 from ..internals.endpoints import (
-    CanvasMisc as CanvasMiscEndpoint,
     Base as BaseEndpoint,
+    CanvasMisc as CanvasMiscEndpoint,
     _Endpoint,
 )
 from ..internals.http import HTTPClient
@@ -53,8 +53,8 @@ class Client:
     """
 
     __slots__: tuple[str, ...] = (
-        "_http",
         "__chatbot",
+        "_http",
     )
 
     def __init__(
@@ -64,12 +64,12 @@ class Client:
         session: aiohttp.ClientSession = _utils.NOVALUE,
     ) -> None:
         self._http = HTTPClient(token, session)
-        self.__chatbot: Optional[Chatbot] = None
+        self.__chatbot: Chatbot | None = None
 
-    async def __aenter__(self) -> Client:
+    async def __aenter__(self) -> Self:
         return self
 
-    async def __aexit__(self, *_: Any) -> None:
+    async def __aexit__(self, *_: object) -> None:
         await self.close()
 
     @property
@@ -97,21 +97,34 @@ class Client:
         """:class:`.PremiumClient`: The Premium endpoint."""
         return self._http._premium
 
-    def chatbot(self, message: Optional[str] = None) -> Chatbot:
-        """:apidocs:`See this endpoint's on the API Documentation. <chatbot#chatbot>`.
-
-        The Chatbot endpoint.
+    def chatbot(self, message: str | None = None) -> Chatbot:
+        """Chatbot endpoint.
 
         Parameters
         ----------
         message: Optional[:class:`str`]
-            The message to send to the chatbot. If not provided, the Chatbot object will be returned instead which has a send method and supports ``async with``
+            The message to send to the chatbot. If not provided, the Chatbot object will be returned instead which
+            has a send method and supports ``async with``
             else :class:`.ChatbotResult` will be returned. ``.response`` on that is the response from the chatbot.
+
+        Example
+        --------
+        .. code-block:: python
+
+            async with client.chatbot() as bot:
+                await bot.send("Hello!")
+                print(bot.response)
+
+            # or
+
+            res = await client.chatbot("Hello!")
+            print(res.response)
 
         Returns
         -------
         Union[:class:`.Chatbot`, :class:`.ChatbotResult`]
-            The Chatbot object or the ChatbotResult object. ``ChatbotResult`` is returned if ``message`` is provided and ``await`` is used else ``Chatbot``.
+            The Chatbot object or the ChatbotResult object. ``ChatbotResult`` is returned if ``message``
+            is provided and ``await`` is used else ``Chatbot``.
         """
         if self.__chatbot:
             self.__chatbot.message = message
@@ -126,16 +139,16 @@ class Client:
     async def _handle_encode_decode(
         self, what: Literal["ENCODE", "DECODE"], name: Literal["base64", "binary"], _input: str
     ) -> EncodeResult:
-        _type_to_endpoint = {"base64": BaseEndpoint.BASE64, "binary": BaseEndpoint.BINARY}
-        res = await self._http.request(_type_to_endpoint[name], **{what.lower(): _input})
+        type_to_endpoint = {"base64": BaseEndpoint.BASE64, "binary": BaseEndpoint.BINARY}
+        res = await self._http.request(type_to_endpoint[name], **{what.lower(): _input})
         return EncodeResult.from_dict(
             _input=_input,
-            _type=what.upper(),  # type: ignore
+            _type=what.upper(),  # pyright: ignore[reportArgumentType]]
             text=res[f"{what.lower()}d"],
-            name=name.upper(),  # type: ignore
+            name=name.upper(),  # pyright: ignore[reportArgumentType]]
         )
 
-    async def encode_base64(self, input: str) -> EncodeResult:
+    async def encode_base64(self, _input: str, /) -> EncodeResult:
         """Encode a string to base64.
 
         Parameters
@@ -148,9 +161,9 @@ class Client:
         :class:`.EncodeResult`
             Object representing the result of the encoding.
         """
-        return await self._handle_encode_decode("ENCODE", "base64", input)
+        return await self._handle_encode_decode("ENCODE", "base64", _input)
 
-    async def decode_base64(self, input: str) -> EncodeResult:
+    async def decode_base64(self, _input: str, /) -> EncodeResult:
         """Decode a base64 string.
 
         Parameters
@@ -163,9 +176,9 @@ class Client:
         :class:`.EncodeResult`
             Object representing the result of the decoding.
         """
-        return await self._handle_encode_decode("DECODE", "base64", input)
+        return await self._handle_encode_decode("DECODE", "base64", _input)
 
-    async def encode_binary(self, input: str) -> EncodeResult:
+    async def encode_binary(self, _input: str, /) -> EncodeResult:
         """Encode a string to binary.
 
         Parameters
@@ -178,9 +191,9 @@ class Client:
         :class:`.EncodeResult`
             Object representing the result of the encoding.
         """
-        return await self._handle_encode_decode("ENCODE", "binary", input)
+        return await self._handle_encode_decode("ENCODE", "binary", _input)
 
-    async def decode_binary(self, input: str) -> EncodeResult:
+    async def decode_binary(self, _input: str) -> EncodeResult:
         """Decode a binary string.
 
         Parameters
@@ -193,7 +206,7 @@ class Client:
         :class:`.EncodeResult`
             Object representing the result of the decoding.
         """
-        return await self._handle_encode_decode("DECODE", "binary", input)
+        return await self._handle_encode_decode("DECODE", "binary", _input)
 
     async def generate_bot_token(self) -> str:
         """:class:`str`: Generate a very realistic bot token"""
@@ -230,24 +243,23 @@ class Client:
         return res["joke"]
 
     @overload
-    async def _handle_rgb_or_hex(self, endpoint: Literal[_Endpoint.CANVAS_RGB,], input: str) -> RGB: ...
+    async def _handle_rgb_or_hex(self, endpoint: Literal[_Endpoint.CANVAS_RGB,], _input: str) -> RGB: ...
 
     @overload
-    async def _handle_rgb_or_hex(self, endpoint: Literal[_Endpoint.CANVAS_HEX], input: str) -> str: ...
+    async def _handle_rgb_or_hex(self, endpoint: Literal[_Endpoint.CANVAS_HEX], _input: str) -> str: ...
 
     @overload
-    async def _handle_rgb_or_hex(self, endpoint: Literal[_Endpoint.CANVAS_RGB], input: str) -> RGB: ...
+    async def _handle_rgb_or_hex(self, endpoint: Literal[_Endpoint.CANVAS_RGB], _input: str) -> RGB: ...
 
     async def _handle_rgb_or_hex(
-        self, endpoint: Literal[_Endpoint.CANVAS_RGB, _Endpoint.CANVAS_HEX], input: str
-    ) -> Union[RGB, str]:
+        self, endpoint: Literal[_Endpoint.CANVAS_RGB, _Endpoint.CANVAS_HEX], _input: str
+    ) -> RGB | str:
         endpoint_to_arg = {CanvasMiscEndpoint.RGB: "hex", CanvasMiscEndpoint.HEX: "rgb"}
-        kwarga = {endpoint_to_arg[endpoint.value]: input.strip("#")}
+        kwarga = {endpoint_to_arg[endpoint.value]: _input.strip("#")}
         res = await self._http.request(endpoint, **kwarga)
         if endpoint is _Endpoint.CANVAS_HEX:
             return res["hex"]
-        else:
-            return RGB.from_dict(res)
+        return RGB.from_dict(res)
 
     # @_utils.endpoint(CanvasMiscEndpoint.HEX, to_call=_handle_rgb_or_hex)
     async def rgb_to_hex(self, rgb: str) -> str:
@@ -266,7 +278,7 @@ class Client:
         return await self._handle_rgb_or_hex(_Endpoint.CANVAS_HEX, rgb)
 
     # @_utils.endpoint(CanvasMiscEndpoint.RGB, to_call=_handle_rgb_or_hex)
-    async def hex_to_rgb(self, hex: str) -> RGB:
+    async def hex_to_rgb(self, _hex: str, /) -> RGB:
         """Converts a hex value to an RGB value.
 
         Parameters
@@ -279,7 +291,7 @@ class Client:
         :class:`.RGB`
             Object containing the RGB values. Use ``.as_tuple`` to get a tuple with the RGB values (``(r, g, b)``).
         """
-        return await self._handle_rgb_or_hex(_Endpoint.CANVAS_RGB, hex)
+        return await self._handle_rgb_or_hex(_Endpoint.CANVAS_RGB, _hex)
 
     @overload
     async def welcome_image(
@@ -309,7 +321,7 @@ class Client:
         obj: WelcomeFree = _utils.NOVALUE,
         *,
         template: Literal[1, 2, 3, 4, 5, 6, 7] = _utils.NOVALUE,
-        type: WelcomeType = _utils.NOVALUE,
+        type: WelcomeType = _utils.NOVALUE,  # noqa: A002
         background: WelcomeBackground = _utils.NOVALUE,
         avatar_url: str = _utils.NOVALUE,
         username: str = _utils.NOVALUE,

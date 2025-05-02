@@ -1,7 +1,7 @@
-from typing import Iterator, Literal
+from typing import Literal
+from collections.abc import Iterator
 
 from .abc import BaseModel
-
 
 __all__ = ("RGB",)
 

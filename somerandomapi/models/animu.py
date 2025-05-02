@@ -1,5 +1,6 @@
-from .abc import BaseModel
+from typing import Self
 
+from .abc import BaseModel
 
 __all__ = ("AnimuQuote",)
 
@@ -7,7 +8,8 @@ __all__ = ("AnimuQuote",)
 class AnimuQuote(BaseModel, frozen=True, validate_types=False):
     """Represents an animu quote.
 
-    This class is not meant to be instantiated by the user. Instead, access it through the :meth:`~somerandomapi.AnimuClient.random_quote` method of the :class:`~somerandomapi.AnimuClient` class.
+    This class is not meant to be instantiated by the user. Instead, access it through the
+    :meth:`~somerandomapi.AnimuClient.random_quote` method of the :class:`~somerandomapi.AnimuClient` class.
     """
 
     quote: str
@@ -21,11 +23,11 @@ class AnimuQuote(BaseModel, frozen=True, validate_types=False):
 
     @classmethod
     def from_dict(
-        cls,
+        cls: type[Self],
         *,
         quote: str,
         anime: str,
-        id: int,
+        id: int,  # noqa: A002
         name: str,
-    ) -> "AnimuQuote":
+    ) -> Self:
         return cls(quote=quote, anime=anime, id=id, name=name)

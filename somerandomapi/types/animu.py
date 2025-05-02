@@ -2,7 +2,6 @@ from typing import Literal, TypedDict
 
 from .http import WithLink
 
-
 ValidAnimu = Literal[
     "nom",
     "poke",

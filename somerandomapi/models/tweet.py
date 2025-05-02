@@ -1,7 +1,6 @@
-from .abc import BaseImageModel, attribute
 from ..enums import TweetTheme
 from ..internals.endpoints import CanvasMisc
-
+from .abc import BaseImageModel, attribute
 
 __all__ = ("Tweet",)
 
@@ -26,4 +25,5 @@ class Tweet(BaseImageModel):
     retweets: int | None = None
     """Optional[:class:`int`]: The amount of retweets the tweet is supposed to have."""
     theme: TweetTheme | None = TweetTheme.LIGHT
-    """:class:`~somerandomapi.enums.TweetTheme`: The theme of the tweet. Defaults to :attr:`~somerandomapi.enums.TweetTheme.LIGHT`."""
+    """:class:`~somerandomapi.enums.TweetTheme`: The theme of the tweet. 
+    Defaults to :attr:`~somerandomapi.enums.TweetTheme.LIGHT`."""

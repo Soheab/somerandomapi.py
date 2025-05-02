@@ -1,6 +1,5 @@
 from typing import Literal, TypedDict
 
-
 Filters = Literal[
     "blue",
     "blurple",
@@ -28,6 +27,16 @@ Borders = Literal[
     "pansexual",
     "transgender",
     "lgbt",
+]
+
+Overlays = Literal[
+    "comrade",
+    "gay",
+    "glass",
+    "jail",
+    "passed",
+    "triggered",
+    "wasted",
 ]
 
 

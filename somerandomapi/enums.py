@@ -1,21 +1,22 @@
+from __future__ import annotations
+
 from enum import Enum
 
-
 __all__ = (
-    "BaseEnum",
-    "Animu",
     "Animal",
-    "Img",
-    "Fact",
-    "CanvasFilter",
-    "CanvasOverlay",
+    "Animu",
+    "BaseEnum",
     "CanvasBorder",
     "CanvasCrop",
-    "WelcomeType",
+    "CanvasFilter",
+    "CanvasOverlay",
+    "Fact",
+    "Img",
+    "ResultType",
+    "TweetTheme",
     "WelcomeBackground",
     "WelcomeTextColor",
-    "TweetTheme",
-    "ResultType",
+    "WelcomeType",
 )
 
 

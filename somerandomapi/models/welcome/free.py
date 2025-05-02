@@ -1,10 +1,8 @@
 from typing import Literal
 
-
-from ..abc import BaseImageModel, attribute
 from ...enums import WelcomeBackground, WelcomeTextColor, WelcomeType
 from ...internals.endpoints import Base
-
+from ..abc import BaseImageModel, attribute
 
 __all__ = ("WelcomeFree",)
 

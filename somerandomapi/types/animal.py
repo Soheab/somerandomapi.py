@@ -1,6 +1,5 @@
 from typing import Literal, TypedDict
 
-
 ValidAnimal = Literal[
     "fox",
     "cat",

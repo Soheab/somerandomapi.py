@@ -1,21 +1,18 @@
 from __future__ import annotations
 
+from typing import TYPE_CHECKING, Any, Literal, Protocol, Self, overload
 import io
-from typing import Any, Literal, Optional, overload, Protocol, TYPE_CHECKING, Union
-
 
 if TYPE_CHECKING:
     from os import PathLike
-
-    from typing_extensions import Self
 
     from ..internals.http import HTTPClient
 
     class FileLike(Protocol):
         def __call__(
             self,
-            fp: Union[str, bytes, PathLike[Any], io.BufferedIOBase],
-            filename: Optional[str] = None,
+            fp: str | bytes | PathLike[Any] | io.BufferedIOBase,
+            filename: str | None = None,
             **kwargs: Any,
         ) -> Self: ...
 
@@ -26,7 +23,7 @@ __all__ = ("Image",)
 class Image:
     """Represents a class for all image endpoints."""
 
-    __slots__ = ("_url", "_http")
+    __slots__ = ("_http", "_url")
 
     _url: str
     _http: HTTPClient
@@ -56,9 +53,9 @@ class Image:
     async def read(self, bytesio: Literal[False] = ...) -> bytes: ...
 
     @overload
-    async def read(self, bytesio: bool = ...) -> Union[bytes, io.BytesIO]: ...
+    async def read(self, bytesio: bool = ...) -> bytes | io.BytesIO: ...  # noqa: FBT001
 
-    async def read(self, bytesio: bool = True) -> Union[bytes, io.BytesIO]:
+    async def read(self, bytesio: bool = True) -> bytes | io.BytesIO:  # noqa: FBT001, FBT002
         """Returns the image data.
 
         Parameters
@@ -77,7 +74,7 @@ class Image:
 
         return io.BytesIO(data)
 
-    async def file(self, cls: FileLike, filename: str = "image.png", **kwargs) -> FileLike:
+    async def file(self, cls: FileLike, filename: str = "image.png", **kwargs: Any) -> FileLike:
         """Converts the image to a file-like object.
 
         Parameters

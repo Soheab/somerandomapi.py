@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-
 if TYPE_CHECKING:
     from ..types.pokemon import (
         PokeDex as PokeDexPayload,
@@ -21,19 +20,19 @@ if TYPE_CHECKING:
     )
 
 __all__ = (
+    "PokeDex",
+    "PokeDexFamily",
+    "PokeDexSprites",
+    "PokeDexStats",
+    "PokemonAbility",
+    "PokemonAbilityPokemons",
+    "PokemonItem",
+    "PokemonMove",
     "WithName",
     "WithNameID",
     "WithNameIDAndEffects",
     "WithVersion",
     "WithVersionAndDescription",
-    "PokemonAbility",
-    "PokemonItem",
-    "PokemonMove",
-    "PokeDexFamily",
-    "PokeDexStats",
-    "PokeDexSprites",
-    "PokemonAbilityPokemons",
-    "PokeDex",
 )
 
 
@@ -101,7 +100,7 @@ class PokemonAbilityPokemons:
         Whether the ability is hidden or not.
     """
 
-    __slots__ = ("pokemon", "hidden")
+    __slots__ = ("hidden", "pokemon")
 
     def __init__(self, payload: PokemonAbilityPokemonsPayload) -> None:
         self.pokemon: str = payload["pokemon"]
@@ -128,7 +127,7 @@ class PokemonAbility(WithNameIDAndEffects):
         The description of the ability.
     """
 
-    __slots__ = ("generation", "description", "_descriptions", "_pokemons")
+    __slots__ = ("_descriptions", "_pokemons", "description", "generation")
 
     def __init__(self, payload: PokemonAbilityPayload) -> None:
         super().__init__(payload)
@@ -178,7 +177,7 @@ class PokemonItem(WithNameIDAndEffects):
         The sprite of the item.
     """
 
-    __slots__ = ("cost", "attributes", "category", "sprite", "_descriptions")
+    __slots__ = ("_descriptions", "attributes", "category", "cost", "sprite")
 
     def __init__(self, payload: PokemonItemPayload) -> None:
         super().__init__(payload)
@@ -192,7 +191,10 @@ class PokemonItem(WithNameIDAndEffects):
         self.sprite: str = payload["sprite"]
 
     def __repr__(self) -> str:
-        return f"<{self.__class__.__name__} name={self.name!r} id={self.id!r} cost={self.cost!r} category={self.category!r} sprite={self.sprite!r}>"
+        return (
+            f"<{self.__class__.__name__} name={self.name!r} id={self.id!r} "
+            f"cost={self.cost!r} category={self.category!r} sprite={self.sprite!r}>"
+        )
 
     @property
     def descriptions(self) -> list[WithVersionAndDescription]:
@@ -239,15 +241,15 @@ class PokemonMove(WithNameIDAndEffects):
     """
 
     __slots__ = (
-        "generation",
-        "type",
+        "_descriptions",
+        "accuracy",
         "category",
         "contest",
-        "pp",
-        "power",
-        "accuracy",
+        "generation",
         "pokemon",
-        "_descriptions",
+        "power",
+        "pp",
+        "type",
     )
 
     def __init__(self, payload: PokemonMovePayload) -> None:
@@ -266,7 +268,10 @@ class PokemonMove(WithNameIDAndEffects):
         self.accuracy: int = payload["accuracy"]
 
     def __repr__(self) -> str:
-        return f"<{self.__class__.__name__} name={self.name!r} id={self.id!r} generation={self.generation!r} type={self.type!r} category={self.category!r}>"
+        return (
+            f"<{self.__class__.__name__} name={self.name!r} id={self.id!r} "
+            f"generation={self.generation!r} type={self.type!r} category={self.category!r}>"
+        )
 
     @property
     def descriptions(self) -> list[WithVersionAndDescription]:
@@ -304,7 +309,7 @@ class PokeDexStats:
         The total of the Pokemon.
     """
 
-    __slots__ = ("hp", "attack", "defense", "special_attack", "special_defence", "speed", "total")
+    __slots__ = ("attack", "defense", "hp", "special_attack", "special_defence", "speed", "total")
 
     def __init__(self, payload: PokeDexStatsPayload) -> None:
         self.hp: str = payload["hp"]
@@ -316,7 +321,11 @@ class PokeDexStats:
         self.total: str = payload["total"]
 
     def __repr__(self) -> str:
-        return f"<{self.__class__.__name__} hp={self.hp!r} attack={self.attack!r} defense={self.defense!r} special_attack={self.special_attack!r} special_defence={self.special_defence!r} speed={self.speed!r} total={self.total!r}>"
+        return (
+            f"<{self.__class__.__name__} hp={self.hp!r} attack={self.attack!r} "
+            f"defense={self.defense!r} special_attack={self.special_attack!r} "
+            f"special_defence={self.special_defence!r} speed={self.speed!r} total={self.total!r}>"
+        )
 
 
 class PokeDexFamily:
@@ -330,7 +339,7 @@ class PokeDexFamily:
         A list of the Pokemon's evolution line.
     """
 
-    __slots__ = ("evolution_stage", "evolution_line")
+    __slots__ = ("evolution_line", "evolution_stage")
 
     def __init__(self, payload: PokeDexFamilyPayload) -> None:
         self.evolution_line: list[str] = payload["evolutionLine"]
@@ -351,7 +360,7 @@ class PokeDexSprites:
         The animated sprite of the Pokemon.
     """
 
-    __slots__ = ("normal", "animated")
+    __slots__ = ("animated", "normal")
 
     def __init__(self, payload: PokeDexSpritesPayload) -> None:
         self.normal: str = payload["normal"]
@@ -389,19 +398,19 @@ class PokeDex(WithName):
     """
 
     __slots__ = (
-        "id",
-        "type",
-        "species",
-        "abilities",
-        "height",
-        "base_experience",
-        "gender",
-        "egg_groups",
-        "description",
-        "generation",
         "_family",
-        "_stats",
         "_sprites",
+        "_stats",
+        "abilities",
+        "base_experience",
+        "description",
+        "egg_groups",
+        "gender",
+        "generation",
+        "height",
+        "id",
+        "species",
+        "type",
     )
 
     def __init__(self, payload: PokeDexPayload) -> None:

@@ -1,6 +1,5 @@
-from .abc import BaseImageModel, attribute
 from ..internals.endpoints import CanvasMisc
-
+from .abc import BaseImageModel, attribute
 
 __all__ = ("GenshinNamecard",)
 

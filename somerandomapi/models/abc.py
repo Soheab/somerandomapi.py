@@ -1,19 +1,15 @@
 from __future__ import annotations
 
+from typing import TYPE_CHECKING, Any, ClassVar, Self, dataclass_transform
 from collections.abc import Iterable
-from typing import Any, ClassVar, Type, TYPE_CHECKING, Self, dataclass_transform
-
 from copy import deepcopy
 from reprlib import recursive_repr
 
-from ..models.image import Image
 from .. import utils as _utils
 from ..enums import BaseEnum
-
+from ..models.image import Image
 
 if TYPE_CHECKING:
-    from typing_extensions import Self
-
     from ..internals.endpoints import Endpoint
 
 __all__ = ()
@@ -22,13 +18,14 @@ __all__ = ()
 class Attribute:
     def __init__(
         self,
+        *,
         default: Any = _utils.NOVALUE,
         min_length: int = _utils.NOVALUE,
         max_length: int = _utils.NOVALUE,
         must_be_one_of: Iterable[str] = _utils.NOVALUE,
         range_: tuple[int, int] = _utils.NOVALUE,
         init: bool = True,
-        repr: bool = True,
+        repr: bool = True,  # noqa: A002
         data_name: str = _utils.NOVALUE,
         forced_type: type[Any] = _utils.NOVALUE,
         metadata: dict[str, Any] = _utils.NOVALUE,
@@ -53,7 +50,7 @@ class Attribute:
     def data_name(self) -> str:
         return self._data_name or self.name
 
-    def __setname__(self, name: str) -> None:
+    def __setname__(self, name: str) -> None:  # noqa: PLW3201
         self.name = name
 
     def set_value(self, value: Any) -> None:
@@ -67,29 +64,35 @@ class Attribute:
         # Validate minimum length
         if self.min_length is not _utils.NOVALUE:
             if not hasattr(value, "__len__"):
-                raise TypeError(f"{self.name!r} must have a length to validate, got {type(value).__name__}")
+                msg = f"{self.name!r} must have a length to validate, got {type(value).__name__}"
+                raise TypeError(msg)
             if len(value) < self.min_length:
-                raise ValueError(f"{self.name!r} must be at least {self.min_length} characters long, got {len(value)}")
+                msg = f"{self.name!r} must be at least {self.min_length} characters long, got {len(value)}"
+                raise ValueError(msg)
 
         # Validate maximum length
         if self.max_length is not _utils.NOVALUE:
             if not hasattr(value, "__len__"):
-                raise TypeError(f"{self.name!r} must have a length to validate, got {type(value).__name__}")
+                msg = f"{self.name!r} must have a length to validate, got {type(value).__name__}"
+                raise TypeError(msg)
             if len(value) > self.max_length:
-                raise ValueError(f"{self.name!r} must be at most {self.max_length} characters long, got {len(value)}")
+                msg = f"{self.name!r} must be at most {self.max_length} characters long, got {len(value)}"
+                raise ValueError(msg)
 
         # Validate allowed values
-        if self.must_be_one_of is not _utils.NOVALUE:
-            if str(value) not in self.must_be_one_of:
-                allowed_values = ", ".join(map(repr, self.must_be_one_of))
-                raise ValueError(f"{self.name!r} must be one of {allowed_values}, got {value!r}")
+        if self.must_be_one_of is not _utils.NOVALUE and str(value) not in self.must_be_one_of:
+            allowed_values = ", ".join(map(repr, self.must_be_one_of))
+            msg = f"{self.name!r} must be one of {allowed_values}, got {value!r}"
+            raise ValueError(msg)
 
         # Validate range
         if self.range_ is not _utils.NOVALUE:
             if not isinstance(value, (int, float)):
-                raise TypeError(f"{self.name!r} must be a number to validate range, got {type(value).__name__}")
+                msg = f"{self.name!r} must be a number to validate range, got {type(value).__name__}"
+                raise TypeError(msg)
             if not (self.range_[0] <= value <= self.range_[1]):
-                raise ValueError(f"{self.name!r} must be in the range {self.range_[0]} to {self.range_[1]}, got {value!r}")
+                msg = f"{self.name!r} must be in the range {self.range_[0]} to {self.range_[1]}, got {value!r}"
+                raise ValueError(msg)
 
         # Assign the validated value
         self._value = value
@@ -125,13 +128,14 @@ class Attribute:
 
 
 def attribute(
+    *,
     default: Any = _utils.NOVALUE,
     min_length: int = _utils.NOVALUE,
     max_length: int = _utils.NOVALUE,
     must_be_one_of: Iterable[str] = _utils.NOVALUE,
-    range: tuple[int, int] = _utils.NOVALUE,
+    range: tuple[int, int] = _utils.NOVALUE,  # noqa: A002
     init: bool = True,
-    repr: bool = True,
+    repr: bool = True,  # noqa: A002
     data_name: str = _utils.NOVALUE,
     metadata: dict[str, Any] = _utils.NOVALUE,
     forced_type: type[Any] = _utils.NOVALUE,
@@ -155,8 +159,8 @@ class BaseModelMeta(type):
     __attributes__: dict[str, Attribute]
     __init_attributes__: dict[str, Attribute]
     __endpoint__: Endpoint
-    __reserved_attributes__: set[str] = {"__attributes__", "__reserved_attributes__", "__endpoint__"}
-    __possible_options__: dict[str, Any] = {
+    __reserved_attributes__: set[str] = {"__attributes__", "__reserved_attributes__", "__endpoint__"}  # noqa: RUF012
+    __possible_options__: dict[str, Any] = {  # noqa: RUF012
         "frozen": False,
         "validate_types": True,
     }
@@ -164,9 +168,10 @@ class BaseModelMeta(type):
     __frozen__: bool
     __validate_types__: bool
 
-    def __new__(cls, name: str, bases: tuple[Type[Any], ...], attrs: dict[str, Any], **options: Any) -> "BaseModelMeta":
+    def __new__(cls, name: str, bases: tuple[type[Any], ...], attrs: dict[str, Any], **options: Any) -> BaseModelMeta:
         if options and not all(key in cls.__possible_options__ for key in options):
-            raise TypeError(f"Invalid options: {', '.join(key for key in options if key not in cls.__possible_options__)}")
+            msg = f"Invalid options: {', '.join(key for key in options if key not in cls.__possible_options__)}"
+            raise TypeError(msg)
 
         if not bases:
             return super().__new__(cls, name, bases, attrs)
@@ -202,51 +207,40 @@ class BaseModelMeta(type):
 
 
 class BaseModel(metaclass=BaseModelMeta):
-    __did_you_mean_cache__: dict[str, str] = {}
-
     def __post_init__(self) -> None:
         self.validate_types()
 
     def __init__(self, **kwargs: Any) -> None:
         if len(kwargs) > len(self.__init_attributes__):
-            raise TypeError(
-                f"Too many keyword arguments passed to {self.__class__.__name__}. Expected {len(self.__init_attributes__)}, got {len(kwargs)}"
+            msg = (
+                f"Too many keyword arguments passed to {self.__class__.__name__}. "
+                f"Expected {len(self.__init_attributes__)}, got {len(kwargs)}"
             )
+            raise TypeError(msg)
 
         # fmt: off
         for name, attribute in self.__init_attributes__.items():
             value = kwargs.pop(name, _utils.NOVALUE)
             if value is _utils.NOVALUE:
                 if attribute.required:
+                    msg = f"Missing required parameter {name!r} for {self.__class__.__name__}"
                     raise TypeError(
-                        f"Missing required parameter {name!r} for {self.__class__.__name__}"
+                        msg
                     )
 
                 attribute.set_value(attribute.default)
             else:
                 if not attribute.init:
+                    msg = f"{name!r} cannot be passed as a keyword argument by you."
                     raise TypeError(
-                        f"{name!r} cannot be passed as a keyword argument by you."
+                        msg
                     )
 
                 attribute.set_value(value)
 
         if kwargs:
             first = next(iter(kwargs))
-
-            guess: str | None = None
-            try:
-                guess = self.__class__.__did_you_mean_cache__[first]
-            except KeyError:
-                import difflib
-                guesses = difflib.get_close_matches(first, self.__attributes__.keys(), n=1, cutoff=0.6)
-                if guesses:
-                    guess = guesses[0]
-                    self.__class__.__did_you_mean_cache__[first] = guess
-
-            msg  = f"{self.__class__.__name__} got an unexpected keyword argument {first!r}."
-            if guess:
-                msg += f" Did you mean {guess!r}?"
+            msg = f"{self.__class__.__name__} got an unexpected keyword argument {first!r}."
             raise TypeError(
                 msg
             )
@@ -286,7 +280,8 @@ class BaseModel(metaclass=BaseModelMeta):
         return f"{self.__class__.__name__}({attributes})"
 
     def __delattr__(self, name: str) -> None:
-        raise AttributeError(f"Cannot delete attribute {name!r}")
+        msg = f"Cannot delete attribute {name!r}"
+        raise AttributeError(msg)
 
     def __setattr__(self, name: str, value: Any) -> None:
         if name.startswith("_"):
@@ -294,25 +289,30 @@ class BaseModel(metaclass=BaseModelMeta):
             return
 
         if name in self.__reserved_attributes__:
-            raise AttributeError(f"{name!r} is a reserved attribute and cannot be set.")
+            msg = f"{name!r} is a reserved attribute and cannot be set."
+            raise AttributeError(msg)
 
         try:
             attribute = self.__attributes__[name]
         except KeyError:
-            raise AttributeError(f"{self.__class__.__name__} has no attribute {name!r}")
+            msg = f"{self.__class__.__name__} has no attribute {name!r}"
+            raise AttributeError(msg) from None
         else:
             if self.__frozen__:
-                raise AttributeError(f"{self.__class__.__name__} is frozen and cannot be modified.")
+                msg = f"{self.__class__.__name__} is frozen and cannot be modified."
+                raise AttributeError(msg)
 
             attribute.set_value(value)
 
     @classmethod
-    def _from_endpoint(cls: Type[Self], endpoint: Any) -> Self:
+    def _from_endpoint(cls: type[Self], endpoint: Any) -> Self:
         if not hasattr(cls, "__endpoint__"):
-            raise TypeError(f"{cls.__name__} does not have an endpoint attribute.")
+            msg = f"{cls.__name__} does not have an endpoint attribute."
+            raise TypeError(msg)
 
         if endpoint is not cls.__endpoint__:
-            raise TypeError(f"Expected endpoint to be {cls.__endpoint__}, got {endpoint}")
+            msg = f"Expected endpoint to be {cls.__endpoint__}, got {endpoint}"
+            raise TypeError(msg)
 
         params_dict = {name: param.value for name, param in endpoint.parameters.items()}
         return cls.from_dict(**params_dict)
@@ -333,23 +333,19 @@ class BaseModel(metaclass=BaseModelMeta):
     @classmethod
     def from_dict(cls: type[Self], data: dict[str, Any]) -> Self:
         kwrgs = {}
-        for _, attribute in cls.__attributes__.items():
+        for attribute in cls.__attributes__.values():
             if not attribute.init:
                 continue
 
-            if attribute.data_name in data:
-                kwrgs[attribute.data_name] = data[attribute.data_name]
-            else:
-                kwrgs[attribute.data_name] = attribute.default
+            kwrgs[attribute.data_name] = data.get(attribute.data_name, attribute.default)
 
-        instance = cls(**kwrgs)
-        return instance
+        return cls(**kwrgs)
 
 
 class BaseImageModel(BaseModel, Image):
     _image: ClassVar[Image] = attribute(repr=False, init=False)
 
     def _set_image(self, image: Image) -> None:
-        self._image = image  # type: ignore
+        self._image = image  # pyright: ignore[reportAttributeAccessIssue]
         self._url = image._url
         self._http = image._http

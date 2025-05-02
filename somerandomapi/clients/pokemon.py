@@ -5,7 +5,6 @@ from typing import TYPE_CHECKING
 from ..internals.endpoints import Pokemon as PokemonEndpoints
 from ..models.pokemon import PokeDex, PokemonAbility, PokemonItem, PokemonMove
 
-
 if TYPE_CHECKING:
     from ..internals.http import HTTPClient
 
@@ -16,7 +15,8 @@ __all__ = ("PokemonClient",)
 class PokemonClient:
     """Represents the "Pokemon" endpoint.
 
-    This class is not meant to be instantiated by the user. Instead, access it through the :attr:`~somerandomapi.Client.pokemon` attribute of the :class:`~somerandomapi.Client` class.
+    This class is not meant to be instantiated by the user. Instead, access it through the
+    :attr:`~somerandomapi.Client.pokemon` attribute of the :class:`~somerandomapi.Client` class.
     """
 
     __slots__ = ("_http",)

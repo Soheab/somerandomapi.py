@@ -1,12 +1,11 @@
 from __future__ import annotations
 
-from typing import Literal, Optional, TYPE_CHECKING, overload
+from typing import TYPE_CHECKING, Literal, overload
 
 from .. import utils as _utils
 from ..internals.endpoints import Premium as PremiumEndpoint
 from ..models.rankcard import Rankcard
 from ..models.welcome.premium import WelcomePremium
-
 
 if TYPE_CHECKING:
     from ..enums import WelcomeTextColor, WelcomeType
@@ -19,7 +18,8 @@ __all__ = ("PremiumClient",)
 class PremiumClient:
     """Represents the "Premium" endpoint.
 
-    This class is not meant to be instantiated by the user. Instead, access it through the :attr:`~somerandomapi.Client.premium` attribute of the :class:`~somerandomapi.Client` class.
+    This class is not meant to be instantiated by the user. Instead, access it through the
+    :attr:`~somerandomapi.Client.premium` attribute of the :class:`~somerandomapi.Client` class.
     """
 
     __slots__ = ("_http",)
@@ -31,8 +31,8 @@ class PremiumClient:
         self,
         avatar: str,
         username: str,
-        key: Optional[str] = None,
-        custom_text: Optional[str] = None,
+        key: str | None = None,
+        custom_text: str | None = None,
     ) -> Image:
         """Create a custom AmongUs ejecting animation.
 
@@ -199,7 +199,7 @@ class PremiumClient:
         obj: WelcomePremium = _utils.NOVALUE,
         *,
         template: Literal[1, 2, 3, 4, 5, 6, 7] = _utils.NOVALUE,
-        type: WelcomeType = _utils.NOVALUE,
+        type: WelcomeType = _utils.NOVALUE,  # noqa: A002
         username: str = _utils.NOVALUE,
         avatar_url: str = _utils.NOVALUE,
         discriminator: int = _utils.NOVALUE,

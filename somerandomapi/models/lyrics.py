@@ -1,6 +1,5 @@
-from .abc import BaseModel
 from ..internals.endpoints import Base
-
+from .abc import BaseModel
 
 __all__ = ("Lyrics",)
 
@@ -18,3 +17,6 @@ class Lyrics(BaseModel, frozen=True, validate_types=False):
     """The URL to more information about the song."""
     thumbnail: str | None
     """The URL to the thumbnail of the song."""
+
+    def __str__(self) -> str:
+        return self.lyrics

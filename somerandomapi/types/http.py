@@ -15,9 +15,7 @@ WelcomeBackgrounds = Literal[
     "gaming3",
     "gaming4",
 ]
-WelcomeTextColors = Literal[
-    "red", "orange", "yellow", "green", "blue", "indigo", "purple", "purple", "pink", "black", "white"
-]
+WelcomeTextColors = Literal["red", "orange", "yellow", "green", "blue", "indigo", "purple", "pink", "black", "white"]
 
 
 class WithLink(TypedDict):

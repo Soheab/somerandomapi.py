@@ -1,11 +1,15 @@
 from __future__ import annotations
+
 from typing import TYPE_CHECKING
 
-from ..internals.endpoints import Animu as AnimuEndpoint, _Endpoint
-from .abc import BaseClient
-from .. import utils
+from .. import utils as _utils
 from ..enums import Animu as AnimuEnum
+from ..internals.endpoints import (
+    Animu as AnimuEndpoint,
+    _Endpoint,
+)
 from ..models.animu import AnimuQuote
+from .abc import BaseClient
 
 if TYPE_CHECKING:
     from ..types.animu import ValidAnimu
@@ -17,42 +21,35 @@ __all__ = ("AnimuClient",)
 class AnimuClient(BaseClient):
     """Represents the "Animu" endpoint.
 
-    This class is not meant to be instantiated by the user. Instead, access it through the :attr:`~somerandomapi.Client.animu` attribute of the :class:`~somerandomapi.Client` class.
+    This class is not meant to be instantiated you. Instead, access it through the :attr:`~somerandomapi.Client.animu`
+    attribute of the :class:`~somerandomapi.Client` class.
     """
 
-    #    @BaseClient._contextmanager
     async def get(self, animu_type: ValidAnimu | AnimuEnum, /) -> str:
         """Get a random animu image.
 
         Parameters
         ----------
-        animu_type: :class:`~somerandomapi.enums.Animu`
-            The type of animu to get.
+        animu_type: Union[:class:`~somerandomapi.Animu`, :class:`str`]
+            The type of animu image to get. Can be one of the :class:`~somerandomapi.Animu` enum
+            values or a string representing the action.
 
         Returns
         -------
         :class:`str`
             The URL of the random animu image.
         """
-        _animu_type = utils._try_enum(AnimuEnum, animu_type)
-        valid_animu = list(map(str, list(AnimuEnum)))
-        if not _animu_type:
-            not_valid_error: str = (
-                f"'animu_type' must be a 'somerandomapi.Animu' or one of {', '.join(valid_animu)}, not {animu_type!r}."
-            )
-            raise ValueError(not_valid_error)
-
-        res = await self._http.request(AnimuEndpoint.from_enum(_animu_type))
+        res = await self._http.request(AnimuEndpoint.from_enum(_utils._str_or_enum(animu_type, AnimuEnum)))
         return res["link"]
 
     async def random_quote(self) -> AnimuQuote:
-        """Get a random animu quote.
+        """Get a random quote from a random animu.
 
         Returns
         -------
-        :class:`AnimuQuote`
-            Object representing the random quote.
-            The quote can be accessed through the ``quote`` attribute.
+        :class:`~somerandomapi.AnimuQuote`
+            Object containing the quote and other information.
+            Use the ``.quote`` attribute to get the quote string.
         """
         response = await self._http.request(_Endpoint.ANIMU_QUOTE)
         return AnimuQuote(**response)

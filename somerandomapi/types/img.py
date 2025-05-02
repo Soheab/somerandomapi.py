@@ -2,7 +2,6 @@ from typing import Literal
 
 from .http import WithLink
 
-
 ValidImg = Literal[
     "fox",
     "cat",

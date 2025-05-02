@@ -1,24 +1,17 @@
-"""
-CREDITS: Discord.py - Permlink: https://github.com/Rapptz/discord.py/blob/4e09c34bbbd034307dbad2713780de60934fe15a/discord/context_managers.py
-"""
-
 from __future__ import annotations
 
+from typing import TYPE_CHECKING, Any, Protocol, Self
+from collections.abc import Callable, Coroutine, Generator
 from functools import partial
-from types import TracebackType
-from typing import Any, Callable, Coroutine, Generator, Optional, Protocol, Type, TYPE_CHECKING
 
 import aiohttp
 
+from .. import utils as _utils
 from ..internals.endpoints import Base
 from ..internals.http import HTTPClient
 from ..models.chatbot import ChatbotResult
-from .. import utils as _utils
-
 
 if TYPE_CHECKING:
-    from typing_extensions import Self
-
     from ..clients.client import Client
     from ..types.http import Chatbot as ChatbotPayload
 
@@ -28,77 +21,6 @@ class _ChatbotRequestMethod(Protocol):
 
 
 __all__ = ("Chatbot",)
-
-"""
-class Ratelimit:
-    HEADERS: Tuple[str, ...] = ("ratelimit-limit", "ratelimit-remaining")
-
-    def __init__(self, rate: int, per: Union[int, float]) -> None:
-        self._max_tries: int = rate
-        self._per_seconds: Union[int, float] = per
-
-        self._resets_at: Optional[datetime.datetime] = None
-        self._tries: int = 0
-
-    @property
-    def per(self) -> Union[int, float]:
-        return self._per_seconds
-
-    @property
-    def rate(self) -> int:
-        return self._max_tries
-
-    @property
-    def reset_at(self) -> Optional[datetime.datetime]:
-        return self._resets_at
-
-    @property
-    def remaining(self) -> int:
-        return self._max_tries - self._tries
-
-    def retry_after(self) -> Optional[float]:
-        if not self.reset_at:
-            return None
-
-        if not self.is_over():
-            return (self.reset_at - datetime.datetime.utcnow()).total_seconds()
-        return None
-
-    def is_over(self) -> bool:
-        now = datetime.datetime.utcnow()
-        to_add = datetime.timedelta(seconds=self._per_seconds)
-        if not self.reset_at:
-            print("is_ver", "not self._reset_at")
-            self._resets_at = now + to_add
-            return False
-
-        print(
-            "is_over",
-            now,
-            self._resets_at,
-            (self.reset_at - now),
-            (self.reset_at - now).total_seconds(),
-            (self.reset_at - now).total_seconds() <= 0,
-        )
-        return (self.reset_at - now).total_seconds() <= 0
-
-    def _almost_ratelimited(self, minus: int = 1) -> bool:
-        print(
-            "_handle",
-            self._tries,
-            self.rate,
-            self.is_over(),
-            self._tries >= self.rate - minus and not self.is_over(),
-        )
-        self.maybe_reset()
-        return self._tries >= self.rate - minus and not self.is_over()
-
-    def maybe_reset(self) -> None:
-        print("maybe_reset", self.is_over())
-        if self.is_over():
-            self._tries = 0
-            self._reset_at = None
-"""
 
 
 class _ChatbotSendContextManager:
@@ -116,12 +38,7 @@ class _ChatbotSendContextManager:
     async def __aenter__(self):
         return await self.__send_request(self.__message)
 
-    async def __aexit__(
-        self,
-        exc_type: Optional[Type[BaseException]],
-        exc: Optional[BaseException],
-        tb: Optional[TracebackType],
-    ) -> None:
+    async def __aexit__(self, *_: object) -> None:
         return await self.__close_session()
 
     def __await__(self) -> Generator[Any, None, ChatbotResult]:
@@ -165,7 +82,8 @@ class Chatbot:
         response = await chatbot.send("Hello")
         print(response.response)
 
-    Or if you don't want to use the ``.send()`` method, you can use ``await`` on the instance of this class directly with the message set on the ``message`` attribute.
+    Or if you don't want to use the ``.send()`` method, you can use ``await`` on the instance of this class directly
+    with the message set on the ``message`` attribute.
 
     .. code-block:: python3
         :linenos:
@@ -187,21 +105,18 @@ class Chatbot:
 
     _endpoint = Base.CHATBOT
     __request: _ChatbotRequestMethod
-    # __ratelimit: Ratelimit
 
     __slots__ = (
-        "_message",
         "__http",
         "__request",
         "_has_provided_client",
         "_has_provided_session",
-        # "_handle_ratelimit",
-        # "__ratelimit",
+        "_message",
     )
 
     def __init__(
         self,
-        message: Optional[str] = None,
+        message: str | None = None,
         *,
         client: Client = _utils.NOVALUE,
         session: aiohttp.ClientSession = _utils.NOVALUE,
@@ -209,15 +124,14 @@ class Chatbot:
         self._has_provided_client: bool = client is not None
         self._has_provided_session: bool = session is not None
 
-        self._message: Optional[str] = message
-        # self._handle_ratelimit: bool = _handle_ratelimit
+        self._message: str | None = message
 
         self.__handle(client, session)
 
     def __handle(
         self,
-        client: Optional[Client],
-        session: Optional[aiohttp.ClientSession],
+        client: Client | None,
+        session: aiohttp.ClientSession | None,
         /,
     ) -> None:
         attrs = [
@@ -228,7 +142,7 @@ class Chatbot:
 
         if client:
             self.__http = client._http
-            client._Client__chatbot = self  # type: ignore
+            client._Client__chatbot = self  # pyright: ignore[reportAttributeAccessIssue]
         else:
             self.__http = HTTPClient(None, session=session)
         self.__request = partial(
@@ -241,7 +155,7 @@ class Chatbot:
         return ChatbotResult(message=message, response=res["response"])
 
     @property
-    def message(self) -> Optional[str]:
+    def message(self) -> str | None:
         """Optional[:class:`str`]: The message to send to the chatbot.
 
         This is only used if you use the ``await`` keyword on an instance of this class.
@@ -249,10 +163,10 @@ class Chatbot:
         return self._message
 
     @message.setter
-    def message(self, message: Optional[str]) -> None:
+    def message(self, message: str | None) -> None:
         self._message = message
 
-    def send(self, message: str):
+    def send(self, message: str) -> _ChatbotSendContextManager:
         """Sends a message to the chatbot. See :class:`Chatbot` for more information.
 
         Parameters
@@ -262,7 +176,7 @@ class Chatbot:
         """
         return _ChatbotSendContextManager(self.__do_request, self.close, message)
 
-    def chat(self, message: str):
+    def chat(self, message: str) -> _ChatbotSendContextManager:
         """Alias for :meth:`send`."""
         return self.send(message)
 
@@ -283,10 +197,5 @@ class Chatbot:
     async def __aenter__(self) -> Self:
         return self
 
-    async def __aexit__(
-        self,
-        exc_type: Optional[Type[BaseException]],
-        exc: Optional[BaseException],
-        tb: Optional[TracebackType],
-    ) -> None:
+    async def __aexit__(self, *_: object) -> None:
         return await self.close()

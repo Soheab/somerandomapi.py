@@ -1,7 +1,7 @@
 from __future__ import annotations
-from functools import wraps
+
+from typing import TYPE_CHECKING, Literal, overload
 import random
-from typing import Any, Callable, Coroutine, Literal, TYPE_CHECKING, Self, TypeVar, overload
 
 from .. import utils as _utils
 from ..enums import CanvasBorder, CanvasCrop, CanvasFilter, CanvasOverlay, TweetTheme
@@ -10,14 +10,14 @@ from ..internals.endpoints import (
     CanvasMisc as CanvasMiscEndpoint,
     CanvasOverlay as CanvasOverlayEndpoint,
 )
-from ..models.image import Image
 from ..models.namecard import GenshinNamecard
 from ..models.tweet import Tweet
 from ..models.youtube_comment import YoutubeComment
 from .abc import BaseClient
 
 if TYPE_CHECKING:
-    from ..types.canvas import Filters
+    from ..models.image import Image
+    from ..types.canvas import Borders, Crops, Filters, Overlays
 
 # fmt: off
 NumbersTill100 = Literal[
@@ -49,10 +49,11 @@ __all__ = ("CanvasClient",)
 class CanvasClient(BaseClient):
     """Represents the ``Canvas`` endpoint.
 
-    This class is not meant to be instantiated by the user. Instead, access it through the :attr:`~somerandomapi.Client.canvas` attribute of the :class:`~somerandomapi.Client`.
+    This class is not meant to be instantiated by you. Instead, access it through the :attr:`~somerandomapi.Client.canvas`
+    attribute of the :class:`~somerandomapi.Client`.
     """
 
-    __slots__ = BaseClient.__slots__ + ("__filter_client",)
+    __slots__ = (*BaseClient.__slots__, "__filter_client")
 
     def __init__(self, http) -> None:
         self._http: HTTPClient = http
@@ -62,20 +63,10 @@ class CanvasClient(BaseClient):
         """:class:`.CanvasMemes`: Returns a subclient for the memes endpoints."""
         return CanvasMemes(self)
 
-    async def _handle_filters(self, filter: CanvasFilter | Filters, /, avatar_url: str, **extras: str | int | None) -> Image:
-        if not isinstance(filter, CanvasFilter):
-            filter = _utils._try_enum(CanvasFilter, filter)  # type: ignore[assignment]
-
-        if not filter:
-            valid_filters = list(map(str, list(CanvasFilter)))
-            not_valid_error: str = (
-                f"'filter' must be a 'somerandomapi.CanvasFilter' or one of {', '.join(valid_filters)}, not {filter!r}."
-            )
-            raise ValueError(not_valid_error)
-
+    async def _handle_filters(self, _filter: CanvasFilter, /, avatar_url: str, **extras: str | int | None) -> Image:
         # because these require different parameters, we need to check and deny them here
-        if filter in (CanvasFilter.BRIGHTNESS, CanvasFilter.COLOR, CanvasFilter.THRESHOLD):
-            if filter is CanvasFilter.BRIGHTNESS:
+        if _filter in (CanvasFilter.BRIGHTNESS, CanvasFilter.COLOR, CanvasFilter.THRESHOLD):
+            if _filter is CanvasFilter.BRIGHTNESS:
                 error_msg = "Brightness must be a number between 0 and 100. Don't specify it to get a random value."
                 brightness = extras.get("brightness")
                 if brightness is not None:
@@ -89,16 +80,16 @@ class CanvasClient(BaseClient):
                             "Brightness must be a number between 0 and 100. Don't specify it to get a random value."
                         )
 
-                brightness = brightness if brightness is not None else random.randint(0, 100)
+                brightness = brightness if brightness is not None else random.randint(0, 100)  # noqa: S311
                 return await self._http.request(
                     CanvasFilterEndpoint.from_enum(CanvasFilter.BRIGHTNESS), avatar=avatar_url, brightness=brightness
                 )
-            elif filter is CanvasFilter.COLOR:
-                _color = _utils._check_colour_value(extras.get("color"), "color")
+            if _filter is CanvasFilter.COLOR:
+                color = _utils._check_colour_value(extras.get("color"), "color")
                 return await self._http.request(
-                    CanvasFilterEndpoint.from_enum(CanvasFilter.COLOR), avatar=avatar_url, color=_color
+                    CanvasFilterEndpoint.from_enum(CanvasFilter.COLOR), avatar=avatar_url, color=color
                 )
-            elif filter is CanvasFilter.THRESHOLD:
+            if _filter is CanvasFilter.THRESHOLD:
                 error_msg = "Threshold must be a number between 0 and 255. Don't specify it to get a random value."
                 threshold = extras.get("threshold")
                 if threshold is not None:
@@ -110,78 +101,93 @@ class CanvasClient(BaseClient):
                 if threshold is not None and not 0 <= threshold <= 255:
                     raise ValueError("Threshold must be a number between 0 and 255. Don't specify it to get a random value.")
 
-                threshold = threshold or random.randint(1, 255)
+                threshold = threshold or random.randint(1, 255)  # noqa: S311
                 return await self._http.request(
                     CanvasFilterEndpoint.from_enum(CanvasFilter.THRESHOLD), avatar=avatar_url, threshold=threshold
                 )
 
-        return await self._http.request(CanvasFilterEndpoint.from_enum(filter), avatar=avatar_url)
+        return await self._http.request(CanvasFilterEndpoint.from_enum(_filter), avatar=avatar_url)
 
-    # @BaseClient._contextmanager
-    async def filter(self, avatar_url: str, filter: CanvasFilter | Filters) -> Image:
+    async def filter(self, avatar_url: str, filter: CanvasFilter | Filters) -> Image:  # noqa: A002
         """Apply a filter to an image.
 
         Parameters
         ----------
         avatar_url: :class:`str`
-            The avatar URL.
-        filter: :class:`.CanvasFilter`
-            The filter to apply.
+            The URL of the image to apply the filter to.
+        filter: Union[:class:`.CanvasFilter`, :class:`str`]
+            The filter to apply. Can be a :class:`.CanvasFilter` enum value or a string representing the filter name.
 
         Returns
         -------
         :class:`.Image`
-            The filtered image.
+            Object representing the filtered image. Use the ``.url`` attribute to access the image URL.
         """
-        return await self._handle_filters(filter, avatar_url=avatar_url)
+        return await self._handle_filters(_utils._str_or_enum(filter, CanvasFilter), avatar_url=avatar_url)
 
-    # fmt: off
-    @BaseClient._proxy_to(filter, pre_args=((1, CanvasFilter.BLUE,),), copy_params_of="DECORATED")
+    @BaseClient._proxy_to(filter, pre_args=((1, CanvasFilter.BLUE),), copy_params_of="DECORATED")
     async def blue_filter(self, avatar_url: str, /) -> Image:
         """Shortcut for :meth:`.filter` with :attr:`.CanvasFilter.BLUE`."""
         ...
-    @BaseClient._proxy_to(filter, pre_args=((1, CanvasFilter.BLURPLE,),) , copy_params_of="DECORATED")
+
+    @BaseClient._proxy_to(filter, pre_args=((1, CanvasFilter.BLURPLE),), copy_params_of="DECORATED")
     async def blurple_filter(self, avatar_url: str, /) -> Image:
         """Shortcut for :meth:`.filter` with :attr:`.CanvasFilter.BLURPLE`."""
         ...
-    @BaseClient._proxy_to(filter, pre_args=((1, CanvasFilter.BLURPLE_2,),), copy_params_of="DECORATED")
+
+    @BaseClient._proxy_to(
+        filter,
+        pre_args=(
+            (
+                1,
+                CanvasFilter.BLURPLE_2,
+            ),
+        ),
+        copy_params_of="DECORATED",
+    )
     async def blurple2_filter(self, avatar_url: str, /) -> Image:
         """Shortcut for :meth:`.filter` with :attr:`.CanvasFilter.BLURPLE_2`."""
         ...
-    @BaseClient._proxy_to(filter, pre_args=((1, CanvasFilter.GREEN,),), copy_params_of="DECORATED")
+
+    @BaseClient._proxy_to(filter, pre_args=((1, CanvasFilter.GREEN),), copy_params_of="DECORATED")
     async def green_filter(self, avatar_url: str, /) -> Image:
         """Shortcut for :meth:`.filter` with :attr:`.CanvasFilter.GREEN`."""
         ...
-    @BaseClient._proxy_to(filter, pre_args=((1, CanvasFilter.GREYSCALE,),), copy_params_of="DECORATED")
+
+    @BaseClient._proxy_to(filter, pre_args=((1, CanvasFilter.GREYSCALE),), copy_params_of="DECORATED")
     async def greyscale_filter(self, avatar_url: str, /) -> Image:
         """Shortcut for :meth:`.filter` with :attr:`.CanvasFilter.GREYSCALE`."""
         ...
-    @BaseClient._proxy_to(filter, pre_args=((1, CanvasFilter.INVERT,),), copy_params_of="DECORATED")
+
+    @BaseClient._proxy_to(filter, pre_args=((1, CanvasFilter.INVERT),), copy_params_of="DECORATED")
     async def invert_filter(self, avatar_url: str, /) -> Image:
         """Shortcut for :meth:`.filter` with :attr:`.CanvasFilter.INVERT`."""
         ...
-    @BaseClient._proxy_to(filter, pre_args=((1, CanvasFilter.INVERT_GREYSCALE,),), copy_params_of="DECORATED")
+
+    @BaseClient._proxy_to(filter, pre_args=((1, CanvasFilter.INVERT_GREYSCALE),), copy_params_of="DECORATED")
     async def invertgreyscale_filter(self, avatar_url: str, /) -> Image:
         """Shortcut for :meth:`.filter` with :attr:`.CanvasFilter.INVERT_GREYSCALE`."""
         ...
-    @BaseClient._proxy_to(filter, pre_args=((1, CanvasFilter.RED,),), copy_params_of="DECORATED")
+
+    @BaseClient._proxy_to(filter, pre_args=((1, CanvasFilter.RED),), copy_params_of="DECORATED")
     async def red_filter(self, avatar_url: str, /) -> Image:
         """Shortcut for :meth:`.filter` with :attr:`.CanvasFilter.RED`."""
         ...
-    @BaseClient._proxy_to(filter, pre_args=((1, CanvasFilter.SEPIA,),), copy_params_of="DECORATED")
+
+    @BaseClient._proxy_to(filter, pre_args=((1, CanvasFilter.SEPIA),), copy_params_of="DECORATED")
     async def sepia_filter(self, avatar_url: str, /) -> Image:
         """Shortcut for :meth:`.filter` with :attr:`.CanvasFilter.SEPIA`."""
         ...
-    @BaseClient._proxy_to(filter, pre_args=((1, CanvasFilter.BLUR,),), copy_params_of="DECORATED")
+
+    @BaseClient._proxy_to(filter, pre_args=((1, CanvasFilter.BLUR),), copy_params_of="DECORATED")
     async def blur_filter(self, avatar_url: str, /) -> Image:
         """Shortcut for :meth:`.filter` with :attr:`.CanvasFilter.BLUR`."""
         ...
-    @BaseClient._proxy_to(filter, pre_args=((1, CanvasFilter.PIXELATE,),), copy_params_of="DECORATED")
+
+    @BaseClient._proxy_to(filter, pre_args=((1, CanvasFilter.PIXELATE),), copy_params_of="DECORATED")
     async def pixelate_filter(self, avatar_url: str, /) -> Image:
         """Shortcut for :meth:`.filter` with :attr:`.CanvasFilter.PIXELATE`."""
         ...
-    # fmt: on
-    # fmt: on
 
     async def brightness_filter(self, avatar_url: str, brightness: NumbersTill100 | None = None) -> Image:
         """Apply a brightness filter to an image.
@@ -189,31 +195,32 @@ class CanvasClient(BaseClient):
         Parameters
         ----------
         avatar_url: :class:`str`
-            The avatar URL.
+            The URL of the image to apply the filter to.
         brightness: :class:`int`
-            The brightness value. Must be between 0 and 100. Defaults to a random number.
+            The brightness value. Must be between 0 and 100. Defaults to a random number between 0 and 100.
 
         Returns
         -------
         :class:`.Image`
-            The filtered image.
+            Object representing the filtered image. Use the ``.url`` attribute to access the image URL.
         """
         return await self._handle_filters(CanvasFilter.BRIGHTNESS, avatar_url, brightness=brightness)
 
-    async def color_filter(self, avatar_url: str, color: str) -> Image:
+    async def color_filter(self, avatar_url: str, color: str | int = _utils.NOVALUE) -> Image:
         """Apply a color filter to an image.
 
         Parameters
         ----------
         avatar_url: :class:`str`
-            The avatar URL.
-        color: :class:`str`
-            The hex color to apply. Can put "random" to get a random color.
+            The URL of the image to apply the filter to.
+        color: Union[:class:`str`, :class:`int`]
+            The color to apply. Can be a hex value (e.g. ``#FF0000``) or an integer (e.g. ``16711680``).
+            Defaults to a random color.
 
         Returns
         -------
         :class:`.Image`
-            The filtered image.
+            Object representing the filtered image. Use the ``.url`` attribute to access the image URL.
         """
         return await self._handle_filters(CanvasFilter.COLOR, avatar_url, color=color)
 
@@ -232,47 +239,43 @@ class CanvasClient(BaseClient):
         Parameters
         ----------
         avatar_url: :class:`str`
-            The avatar URL.
+            The URL of the image to apply the filter to.
         threshold: :class:`int`
-            The threshold value. Must be between 0 and 255. Defaults to a random number.
+            The threshold value. Must be between 0 and 255. Defaults to a random number between 1 and 255.
 
         Returns
         -------
         :class:`.Image`
-            The filtered image.
+            Object representing the filtered image. Use the ``.url`` attribute to access the image URL.
         """
         return await self._handle_filters(CanvasFilter.THRESHOLD, avatar_url, threshold=threshold)
 
-    async def overlay(self, avatar_url: str, overlay: CanvasOverlay) -> Image:
-        """Apply an overlay to an image.
+    async def overlay(self, avatar_url: str, overlay: CanvasOverlay | Overlays) -> Image:
+        """Add an overlay to an image.
 
         Parameters
         ----------
         avatar_url: :class:`str`
-            The avatar URL.
-        overlay: :class:`.CanvasOverlay`
-            The overlay to apply.
+            The URL of the image to apply the overlay to.
+        overlay: Union[:class:`.CanvasOverlay`, :class:`str`]
+            The overlay to apply. Can be a :class:`.CanvasOverlay` enum value or a string representing the overlay name.
 
         Returns
         -------
         :class:`.Image`
-            The filtered image.
+            Object representing the image with the overlay applied. Use the ``.url`` attribute to access the image URL.
         """
-        _enum = CanvasOverlay
-        if not isinstance(overlay, _enum):
-            raise TypeError(f"Expected CanvasOverlay, got {overlay.__class__.__name__}")
+        endpoint = CanvasOverlayEndpoint.from_enum(_utils._str_or_enum(overlay, CanvasOverlay))
+        return await self._http.request(endpoint, avatar=avatar_url)
 
-        _endpoint = CanvasOverlayEndpoint.from_enum(overlay)
-        return await self._http.request(_endpoint, avatar=avatar_url)
-
-    async def border(self, avatar_url: str, border: CanvasBorder) -> Image:
+    async def border(self, avatar_url: str, border: CanvasBorder | Borders) -> Image:
         """Add a border to an image.
 
         Parameters
         ----------
         avatar_url: :class:`str`
             The avatar URL.
-        border: :class:`.CanvasBorder`
+        border: Union[:class:`.CanvasBorder`, :class:`str`]
             The border to add.
 
         Returns
@@ -280,13 +283,11 @@ class CanvasClient(BaseClient):
         :class:`.Image`
             The filtered image.
         """
-        _enum = CanvasBorder
-        if not isinstance(border, _enum):
-            raise TypeError(f"Expected CanvasBorder, got {border.__class__.__name__}")
+        return await self._http.request(
+            CanvasMiscEndpoint.from_enum(_utils._str_or_enum(border, CanvasBorder)), avatar=avatar_url
+        )
 
-        return await self._http.request(CanvasMiscEndpoint.from_enum(border), avatar=avatar_url)
-
-    async def crop(self, avatar_url: str, shape: CanvasCrop) -> Image:
+    async def crop(self, avatar_url: str, shape: CanvasCrop | Crops) -> Image:
         """Crop an image into various shapes.
 
         Parameters
@@ -301,11 +302,9 @@ class CanvasClient(BaseClient):
         :class:`.Image`
             The filtered image.
         """
-        _enum = CanvasCrop
-        if not isinstance(shape, _enum):
-            raise TypeError(f"Expected CanvasCrop, got {shape.__class__.__name__}")
-
-        return await self._http.request(CanvasMiscEndpoint.from_enum(shape), avatar=avatar_url)
+        return await self._http.request(
+            CanvasMiscEndpoint.from_enum(_utils._str_or_enum(shape, CanvasCrop)), avatar=avatar_url
+        )
 
     @overload
     async def generate_tweet(
@@ -552,7 +551,8 @@ class CanvasClient(BaseClient):
 class CanvasMemes:
     """A class for interacting with the Canvas memes endpoints.
 
-    This class is not meant to be instantiated by the user. Instead, access it through the :attr:`~somerandomapi.CanvasClient.memes` attribute of the :class:`~somerandomapi.CanvasClient` class.
+    This class is not meant to be instantiated by the user. Instead, access it through the
+    :attr:`~somerandomapi.CanvasClient.memes` attribute of the :class:`~somerandomapi.CanvasClient` class.
     """
 
     def __init__(self, client: CanvasClient, /) -> None:

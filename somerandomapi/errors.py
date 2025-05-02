@@ -1,24 +1,24 @@
 from __future__ import annotations
 
-from typing import Any, Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
+import contextlib
 
 from . import utils as _utils
 
-
 if TYPE_CHECKING:
-    from .models.abc import BaseModel
     from .internals.endpoints import Endpoint
+    from .models.abc import BaseModel
 
 
 __all__ = (
-    "SomeRandomApiException",
     "BadRequest",
-    "NotFound",
-    "InternalServerError",
     "Forbidden",
     "HTTPException",
-    "RateLimited",
     "ImageError",
+    "InternalServerError",
+    "NotFound",
+    "RateLimited",
+    "SomeRandomApiException",
     "TypingError",
 )
 
@@ -35,16 +35,14 @@ class SomeRandomApiException(Exception):
         Use ``endpoint.path`` to get the full path of the endpoint.
     """
 
-    def __init__(self, endpoint: Endpoint, data: Any, /):
+    def __init__(self, endpoint: Endpoint, data: Any, /) -> None:
         self.data: Any = data
         self.endpoint: Endpoint = endpoint
 
-        self.message = f"{str(data)}"
+        self.message = f"{data!s}"
         if isinstance(data, dict):
-            try:
+            with contextlib.suppress(KeyError):
                 self.message = data["error"]
-            except KeyError:
-                pass
 
             try:
                 self.code = data["code"]
@@ -53,8 +51,6 @@ class SomeRandomApiException(Exception):
 
             self.message += f" (Code: {self.code})"
 
-        # if self.code in (400, 404, 403):
-        #   self.message = ""
         super().__init__(f"While requesting /{endpoint.path}: {self.message}")
 
 
@@ -73,7 +69,7 @@ class NotFound(SomeRandomApiException):
 class InternalServerError(SomeRandomApiException):
     """``Internal Server Error`` error."""
 
-    def __init__(self, enum, data: Any, /):
+    def __init__(self, enum, data: Any, /) -> None:
         Exception.__init__(self, f"Internal Server Error while requesting {enum.base()}{enum.value.path}.")
 
 
@@ -97,14 +93,12 @@ class HTTPException(SomeRandomApiException):
     message: str
     code: int
 
-    def __init__(self, enum, response, data: Any, /):
+    def __init__(self, enum, response, data: Any, /) -> None:
         self.response = response
         self.data = data
         if isinstance(data, dict):
-            try:
+            with contextlib.suppress(KeyError):
                 self.message = data["error"]
-            except KeyError:
-                pass
             try:
                 self.code = data["code"]
             except KeyError:
@@ -127,7 +121,7 @@ class ImageError(SomeRandomApiException):
         The status code of the response.
     """
 
-    def __init__(self, url: str, status: int, /):
+    def __init__(self, url: str, status: int, /) -> None:
         self.url: str = url
         self.status: int = status
         Exception.__init__(self, f"Could not get image from {url} (code: {status})")
@@ -147,7 +141,13 @@ class TypingError(TypeError):
     """
 
     def __init__(
-        self, cls: BaseModel, attribute: Any, value: Any, *, message: Optional[str] = None, **format_kwarg: Any
+        self,
+        cls: BaseModel,
+        attribute: Any,
+        value: Any,
+        *,
+        message: str | None = None,
+        **format_kwarg: Any,
     ) -> None:
         self.cls: BaseModel = cls
         self.attribute: Any = attribute

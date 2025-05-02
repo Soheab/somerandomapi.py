@@ -1,15 +1,13 @@
 from __future__ import annotations
 
+from typing import TYPE_CHECKING, Any, Self
+from collections.abc import Callable
 import logging
-from typing import Any, Callable, Literal, Optional, TYPE_CHECKING
 from urllib.parse import quote_plus, urlencode
 
 from .. import enums
 
-
 if TYPE_CHECKING:
-    from typing_extensions import Self
-
     from .http import HTTPClient
 
 
@@ -18,8 +16,8 @@ _log: logging.Logger = logging.getLogger("somerandomapi.endpoints")
 
 class Endpoint:
     __slots__: tuple[str, ...] = (
-        "path",
         "parameters",
+        "path",
     )
 
     def __init__(
@@ -50,9 +48,11 @@ class Endpoint:
 
             if param.required:
                 if name not in values:
-                    raise TypeError(f"Missing required parameter {name}")
-                elif not values[name]:
-                    raise TypeError(f"Missing required value for parameter {name}")
+                    msg = f"Missing required parameter {name}"
+                    raise TypeError(msg)
+                if not values[name]:
+                    msg = f"Missing required value for parameter {name}"
+                    raise TypeError(msg)
 
             _log.debug("Setting value for %s parameter to %r", name, values[name])
             param.value = values[name]
@@ -87,7 +87,7 @@ class BaseEndpointMeta(type):
     if TYPE_CHECKING:
         _handle_endpoint: Callable[[Endpoint], None]
 
-    def __new__(mcs, name: str, bases: tuple[type, ...], attrs: dict[str, Any]) -> "BaseEndpointMeta":
+    def __new__(mcs, name: str, bases: tuple[type, ...], attrs: dict[str, Any]) -> BaseEndpointMeta:
         cls = super().__new__(mcs, name, bases, attrs)
         if "path" not in attrs:
             return cls
@@ -111,16 +111,18 @@ class BaseEndpoint(metaclass=BaseEndpointMeta):
     @classmethod
     def from_enum(cls, enum: enums.BaseEnum) -> Endpoint:
         if not isinstance(enum, enums.BaseEnum):
-            raise TypeError(f"Expected 'enum' to be an instance of BaseEnum, got {type(enum).__name__!r} instead.")
+            msg = f"Expected 'enum' to be an instance of BaseEnum, got {type(enum).__name__!r} instead."
+            raise TypeError(msg)
 
         attr_name = enum.value.replace("-", "_").upper()
         try:
             return getattr(cls, attr_name)
         except AttributeError as exc:
-            raise ValueError(f"Could not find an endpoint matching the passed enum ({enum!r}).") from exc
+            msg = f"Could not find an endpoint matching the passed enum ({enum!r})."
+            raise ValueError(msg) from exc
 
     @classmethod
-    def _handle_endpoint(cls, endpoint: "Endpoint") -> None:
+    def _handle_endpoint(cls, endpoint: Endpoint) -> None:
         if not endpoint.path.startswith(cls.path):
             endpoint.path = f"{cls.path}{endpoint.path}"
         for name, param in endpoint.parameters.items():
@@ -129,28 +131,29 @@ class BaseEndpoint(metaclass=BaseEndpointMeta):
 
 class Parameter:
     __slots__ = (
-        "required",
-        "extra",
-        "is_body_parameter",
         "_name",
         "_value",
+        "extra",
         "index",
+        "is_body_parameter",
+        "required",
     )
 
     def __init__(
         self,
+        *,
         required: bool = True,
-        extra: Optional[str] = None,
+        extra: str | None = None,
         is_body_parameter: bool = False,
-        index: Optional[int] = None,
+        index: int | None = None,
     ) -> None:
         self.required: bool = required
-        self.extra: Optional[str] = extra
+        self.extra: str | None = extra
         self.is_body_parameter: bool = is_body_parameter
-        self.index: Optional[int] = index
+        self.index: int | None = index
 
-        self._name: Optional[str] = None  # filled in with values
-        self._value: Optional[Any] = None
+        self._name: str | None = None  # filled in with values
+        self._value: Any | None = None
 
     def __repr__(self) -> str:
         return f"<{self.__class__.__name__} name={self._name!r} value={self._value!r}>"
@@ -176,7 +179,7 @@ class Base(BaseEndpoint):
     if TYPE_CHECKING:
 
         @classmethod
-        def from_enum(cls, enum: Literal[None]) -> None: ...
+        def from_enum(cls, enum: None) -> None: ...
 
     BASE64 = Endpoint(
         "base64",
@@ -294,7 +297,7 @@ class BaseCanvas(BaseEndpoint):
     if TYPE_CHECKING:
 
         @classmethod
-        def from_enum(cls, enum: Literal[None]) -> None: ...
+        def from_enum(cls, enum: None) -> None: ...
 
     COLORVIEWER = Endpoint("colorviewer", hex=Parameter(extra="hex color code without the # ie. white is ffffff"))
     HEX = Endpoint("hex", rgb=Parameter(extra="separated by commas"))
@@ -416,7 +419,7 @@ class Pokemon(BaseEndpoint):
     if TYPE_CHECKING:
 
         @classmethod
-        def from_enum(cls, enum: Literal[None]) -> None: ...
+        def from_enum(cls, enum: None) -> None: ...
 
     ABILITIES = Endpoint("abilities", ability=Parameter(extra="Ability name or id of a pokemon ability"))
     ITEMS = Endpoint("items", item=Parameter(extra="Item name or id of a pokemon item"))
@@ -429,7 +432,7 @@ class Premium(BaseEndpoint):
     if TYPE_CHECKING:
 
         @classmethod
-        def from_enum(cls, enum: Literal[None]) -> None: ...
+        def from_enum(cls, enum: None) -> None: ...
 
     AMONGUS = Endpoint(
         "amongus",

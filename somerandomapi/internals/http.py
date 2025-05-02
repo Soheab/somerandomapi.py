@@ -1,11 +1,13 @@
 from __future__ import annotations
 
+from typing import TYPE_CHECKING, Any, ClassVar, Literal, TypeVar, overload
+from collections.abc import Coroutine
 import json
 import logging
-from typing import Any, ClassVar, Coroutine, Literal, Optional, TYPE_CHECKING, TypeVar, Union, overload
 
 import aiohttp
 
+from .. import utils as _utils
 from ..clients.animal import AnimalClient
 from ..clients.animu import AnimuClient
 from ..clients.canvas import CanvasClient
@@ -13,12 +15,10 @@ from ..clients.pokemon import PokemonClient
 from ..clients.premium import PremiumClient
 from ..errors import *
 from ..models.image import Image
-from .. import utils as _utils
-from .endpoints import _Endpoint, Endpoint
+from .endpoints import Endpoint, _Endpoint
 
 if TYPE_CHECKING:
     from ..clients.chatbot import Chatbot
-
     from ..types import (
         animal as animaltypes,
         animu as animutypes,
@@ -38,7 +38,7 @@ __all__ = ()
 _log: logging.Logger = logging.getLogger("somerandomapi.http")
 
 
-async def json_or_text(response: aiohttp.ClientResponse) -> Union[dict[str, Any], str]:
+async def json_or_text(response: aiohttp.ClientResponse) -> dict[str, Any] | str:
     text = await response.text(encoding="utf-8")
     if response.content_type == "application/json":
         return json.loads(text)
@@ -201,15 +201,15 @@ class HTTPClient:
     USER_AGENT = "somerandomapi.py (https://github.com/soheab/somerandomapi.py)"
 
     __slots__ = (
+        "__chatbot",
+        "__user_provided_session",
         "_animal",
         "_animu",
         "_canvas",
         "_pokemon",
         "_premium",
-        "_token",
         "_session",
-        "__chatbot",
-        "__user_provided_session",
+        "_token",
     )
 
     def __init__(self, token: str | None, session: aiohttp.ClientSession | None) -> None:
@@ -221,13 +221,13 @@ class HTTPClient:
         self._pokemon: PokemonClient = PokemonClient(self)
         self._premium: PremiumClient = PremiumClient(self)
 
-        self.__chatbot: Optional[Chatbot] = None
+        self.__chatbot: Chatbot | None = None
 
         if session is not _utils.NOVALUE and session is None:
             _log.warning(
                 (
-                    "You passed `None` to the `session` keyword-argument. This behavior is deprecated and will raise an error in the future."
-                    "Please pass a `aiohttp.ClientSession` instance or leave it empty."
+                    "You passed `None` to the `session` keyword-argument. This behavior is deprecated and will raise an "
+                    "error in the future. Please pass a `aiohttp.ClientSession` instance or leave it empty."
                 ),
                 FutureWarning,
             )
@@ -433,9 +433,9 @@ class HTTPClient:
         username: str,
         avatar: str,
         comment: str,
-        replies: Optional[int] = None,
-        likes: Optional[int] = None,
-        retweets: Optional[int] = None,
+        replies: int | None = None,
+        likes: int | None = None,
+        retweets: int | None = None,
         theme: str | None = None,
     ) -> Image: ...
 
@@ -542,7 +542,8 @@ class HTTPClient:
         if not pre_url:
             if endpoint.parameters:
                 if not parameters:
-                    raise ValueError(f"Endpoint {endpoint.path} requires parameters.")
+                    msg = f"Endpoint {endpoint.path} requires parameters."
+                    raise ValueError(msg)
 
                 endpoint._set_param_values(self, **parameters)
 
@@ -561,13 +562,12 @@ class HTTPClient:
             else:
                 data = response
 
-            if isinstance(data, dict):
+            if isinstance(data, dict) and data.get("error"):
                 # sometimes the api returns a 200 with an error
-                if data.get("error"):
-                    _log.debug("Request failed with error: %s and data: %s", data["error"], data)
-                    # we should show the correct status code
-                    data["code"] = response.status
-                    raise BadRequest(endpoint, data)
+                _log.debug("Request failed with error: %s and data: %s", data["error"], data)
+                # we should show the correct status code
+                data["code"] = response.status
+                raise BadRequest(endpoint, data)
 
             if response.status == 200:
                 if response.content_type.startswith("image/"):
@@ -575,10 +575,10 @@ class HTTPClient:
 
                 return data
 
-            elif response.status == 400:
+            if response.status == 400:
                 _log.debug("Request failed with status code 400: %s", data)
                 raise BadRequest(endpoint, data)
-            elif response.status == 403:
+            elif response.status == 403:  # noqa: RET506
                 _log.debug("Request failed with status code 403: %s", data)
                 raise Forbidden(endpoint, data)
             elif response.status == 404:
