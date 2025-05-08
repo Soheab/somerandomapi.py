@@ -54,12 +54,12 @@ class Attribute:
         self.name = name
 
     def set_value(self, value: Any) -> None:
-        if self.forced_type is not _utils.NOVALUE:
-            value = self.forced_type(value)
-
         if value in (None, _utils.NOVALUE):
             self._value = value
             return
+
+        if self.forced_type is not _utils.NOVALUE:
+            value = self.forced_type(value)
 
         # Validate minimum length
         if self.min_length is not _utils.NOVALUE:
