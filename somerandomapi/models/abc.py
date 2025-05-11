@@ -98,12 +98,12 @@ class Attribute:
         self._value = value
 
     def get_value(self) -> Any:
-        if self._value is _utils.NOVALUE:
+        if self._value in (_utils.NOVALUE, None):
             return self.default
         return self._value if self.forced_type is _utils.NOVALUE else self.forced_type(self._value)
 
     def _get_flatten_value(self) -> Any:
-        if self._value is _utils.NOVALUE:
+        if self._value in (_utils.NOVALUE, None):
             return self.default
 
         if isinstance(self._value, BaseEnum):
