@@ -238,8 +238,7 @@ class HTTPClient:
     async def initiate_session(self) -> aiohttp.ClientSession:
         if not self._session or self._session.closed:
             if self.__user_provided_session:
-                _log.debug("Session is closed, but user provided it. Not creating a new one.")
-                return self._session  # type: ignore[reportReturnType]
+                _log.debug("Session is closed, but user provided it.")
             _log.debug("Creating a new session.")
             self._session = aiohttp.ClientSession()
 
