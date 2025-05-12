@@ -641,7 +641,7 @@ class CanvasMemes:
         """
         return await self.__client._http.request(CanvasMiscEndpoint.LOLICE, avatar=avatar_url)
 
-    async def no_bitches(self, *, avatar_url: str, no: str) -> Image:
+    async def no_bitches(self, *, avatar_url: str, no: str, bottom_text: str | None = None) -> Image:
         """No bitches meme.
 
         Parameters
@@ -650,13 +650,20 @@ class CanvasMemes:
             The avatar URL.
         no: :class:`str`
             no?
+        bottom_text: :class:`str`
+            The text to display at the bottom of the image.
+            Defaults to nothing.
+
+            .. versionadded:: 0.2.0
 
         Returns
         --------
         :class:`.Image`
             Object representing the generated image.
         """
-        return await self.__client._http.request(CanvasMiscEndpoint.NO_BITCHES, avatar=avatar_url, no=no)
+        return await self.__client._http.request(
+            CanvasMiscEndpoint.NO_BITCHES, avatar=avatar_url, no=no, bottomtext=bottom_text
+        )
 
     async def tonikawa(self, avatar_url: str) -> Image:
         """Tonikawa meme.

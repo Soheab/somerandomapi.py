@@ -411,6 +411,7 @@ class HTTPClient:
         *,
         avatar: str,
         no: bool,
+        bottomtext: str | None = None,
     ) -> Any: ...
 
     @overload
