@@ -11,11 +11,15 @@ in specific versions.
 v0.1.2
 -------
 
+- Added support for `bottom_text` parameter in :meth:`CanvasMemes.no_bitches` method.
+- Fixed a bug where the aiohttp session could be closed when passed by the user. 
+  The library will always recreate a new session if that's the case.
 - Hotfix for Python 3.14 compatibility. The wrapper now supports Python 3.11 to 3.14.
 - Other Miscellaneous fixes and improvements internally. For example, the type 
   checking implementation was improved to handle more edge cases and be less error-prone.
 - Improve error messages for some exceptions, like missing keyword arguments or passing
   positional arguments when only keyword arguments are accepted.
+
 
 **Full Changelog**: `GitHub Diff <https://github.com/Soheab/somerandomapi.py/compare/0.1.1...0.1.2>`_
 

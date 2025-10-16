@@ -654,7 +654,7 @@ class CanvasMemes:
             The text to display at the bottom of the image.
             Defaults to nothing.
 
-            .. versionadded:: 0.2.0
+            .. versionadded:: 0.1.2
 
         Returns
         --------
