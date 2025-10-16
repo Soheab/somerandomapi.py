@@ -8,6 +8,7 @@ Changelog
 This page keeps a detailed, human-friendly rendering of what's new and changed
 in specific versions.
 
+
 v0.1.1
 -------
 
@@ -102,7 +103,7 @@ Miscellaneous
 - Renamed ``Canvad.filter_colo[u]r`` to :meth:`CanvasClient.color_filter` and 
   :meth:`CanvasClient.colour_filter`.
 - Renamed ``CanvasClient.filter_threshold`` to :meth:`CanvasClient.threshold_filter`.
-- The ``theme`` parameter in :meth:`CanvasClient.generate_tweet` now an enum of type 
+- The ``theme`` parameter in :meth:`CanvasClient.generate_tweet` now takes an enum of type
   :class:`.TweetTheme` instead of a string. Still defaults to
   dark (:attr:`.TweetTheme.DARK`).
 - The ``lyrics`` endpoint has changed. The following changes were made in this library:
@@ -116,7 +117,46 @@ Miscellaneous
 - All docstrings were revisited to be constsistent and follow the same format.
 - Brand new README.
 
-**Full Changelog**: `GitHub Diff <https://github.com/Soheab/somerandomapi.py/compare/0.0.7...0.1.0>`_
+**Full Changelog**: `GitHub Diff <https://github.com/Soheab/somerandomapi.py/compare/0.0.8...0.1.0>`_
+
+v0.0.8
+------
+
+- Add debug logging to the http client and endpoints validation. This will log the request and response data if the logger is set to debug. Here is how to enable it:
+
+  .. code-block:: python
+
+    import logging
+
+    # http
+    sra_http_logger = logging.getLogger("somerandomapi.http")
+    sra_http_logger.setLevel(logging.DEBUG)
+    # endpoints validation
+    sra_endpoints_logger = logging.getLogger("somerandomapi.endpoints")
+    sra_endpoints_logger.setLevel(logging.DEBUG)
+
+- Corrected the font range for the welcome cards to be between 0 and 7. It was previously between 0 and 10.
+  To prevent a breaking change, the library sets the font to 7 if the provided font is greater than 7.
+
+  Affected classes and methods:
+    - :meth:`.Client.welcome_image`
+    - :class:`PremiumClient.welcome_image`
+    - :class:`.WelcomeFree`
+    - :class:`.WelcomePremium`
+- Added a new method to the :class:`.AnimalClient` class to help with trying all available animal endpoints in order to get an image and a fact or just one of them.
+  The method is called :meth:`.AnimalClient.get_image_or_fact` and takes all the available animal names and endpoints and tries to get an image and 
+  a fact from each one until it succeeds. It returns an instance of :class:`.AnimalImageOrFact` with two optional attributes: `image` and `fact`. 
+  If the method fails to get an image and a fact, it will return `None` for both attributes.
+
+  .. code-block:: python
+
+    import somerandomapi
+
+    client = somerandomapi.Client(...)
+    image_fact = await client.animal.get_image_or_fact(<enum or str>) # Example: "cat" or somerandomapi.Animal.PIKACHU
+    print(image_fact.image, image_fact.fact) # <image url or None> <fact or None>
+
+**Full Changelog**: `GitHub Diff <https://github.com/Soheab/somerandomapi.py/compare/0.0.7...0.0.8>`_
 
 v0.0.7
 -------
@@ -126,15 +166,12 @@ v0.0.7
   - :class:`.PremiumClient`
   - :class:`.Rankcard`
   - :class:`.WelcomeFree`
-  - :class:`.WelcomePremium`
-  
-  It would previously raise an error if the discriminator was provided.
+  - :class:`WelcomePremium`
+It would previously raise an error if the discriminator was provided.
 
-- **Fix**: Internal error when the API returns an unexpected status code.
-- **Fix**: Unparsed TypingError.
-  - Sometimes it would send "_UnionGenericAlias" in the error message instead of 
-    the actual field type. This issue was fixed by always parsing the 
-    field's type.
+- Fix an internal error when the API returns an unexpected status code.
+- Fix unparsed TypingError.
+Sometimes it would send "_UnionGenericAlias" in the error message instead of the actual field type. This was fixed by always parsing the field's type.
 
 **Full Changelog**: `GitHub Diff <https://github.com/Soheab/somerandomapi.py/compare/0.0.6...0.0.7>`_
 
@@ -169,11 +206,10 @@ v0.0.4
 v0.0.3
 -------
 
-- **Fix**: Correct base API URL. URL changed from 
-  ``https://some-random-api.ml/`` to ``https://some-random-api.com/``.
-- **Fix**: Mistake in :meth:`.AnimalClient.get_image_and_fact`.
-- **Fix**: Enum conversion errors.
-- **Fix**: Link to API in documentation.
+- Correct base API URL. URL changed from ``https://some-random-api.ml/`` to ``https://some-random-api.com/``.
+- Fix mistake in :class:`.AnimalClient.get_image_and_fact`
+- Fix enum conversion errors
+- Fix link to API in documentation.
 
 **Full Changelog**: `GitHub Diff <https://github.com/Soheab/somerandomapi.py/compare/0.0.2...0.0.3>`_
 
