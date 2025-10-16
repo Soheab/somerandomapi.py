@@ -229,8 +229,11 @@ def _check_types(
         _type = _builin_types_from_str(_type)  # pyright: ignore[reportAssignmentType]
         _type = eval(_type, glbs, lcs)  # pyright: ignore[reportArgumentType] # noqa: S307
 
-    if value is None and attribute.default is not None:
-        raise TypingError(cls, attribute, value, message=EXPECTED_INSTANCE_MESSAGE, expected_type=_type, cast_type=False)
+    if value is None:
+        if attribute.default is not None:
+            raise TypingError(cls, attribute, value, message=EXPECTED_INSTANCE_MESSAGE, expected_type=_type, cast_type=False)
+        else:
+            return
 
     try:
         if isinstance(value, _type):
