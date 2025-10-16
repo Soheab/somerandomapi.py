@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any, ClassVar, Self, dataclass_transform
 from collections.abc import Iterable
 from copy import deepcopy
+import inspect
 from reprlib import recursive_repr
 
 from .. import utils as _utils
@@ -183,7 +184,7 @@ class BaseModelMeta(type):
         self.__frozen__ = options.get("frozen", False)
         self.__validate_types__ = options.get("validate_types", True)
 
-        annotations = self.__annotations__
+        annotations = inspect.get_annotations(self, eval_str=True)
         for key, _type in annotations.items():
             if key in self.__reserved_attributes__:
                 continue

@@ -37,6 +37,7 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
 ]
 
 [project.optional-dependencies]
@@ -160,7 +161,6 @@ select = [
     "TRY",
     "UP",
     "YTT",
-    # "DOC",   # not in a bot, please
 ]
 ignore = [
     "ANN001",   # who annoates cls
@@ -184,7 +184,6 @@ ignore = [
     "TRY003",   # over-eager rule
     "TRY301",   # unrealistic rule
     "UP034",
-    "UP038",
     "TC001",    # nah it doesn't have to go into TYPE_CHECKING
     "TC002",    # nah it doesn't have to go into TYPE_CHECKING
     "TC003",    # nah it doesn't have to go into TYPE_CHECKING
