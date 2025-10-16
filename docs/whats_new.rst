@@ -8,6 +8,12 @@ Changelog
 This page keeps a detailed, human-friendly rendering of what's new and changed
 in specific versions.
 
+v0.1.3
+-------
+
+- Hot fix for cases where `None` was no longer accepted, even though it was the default.
+- Fixed the wrong or no repr appearing for osme models.
+
 v0.1.2
 -------
 

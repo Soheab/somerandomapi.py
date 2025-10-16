@@ -9,7 +9,7 @@
 project = "somerandomapi.py"
 copyright = "2023-2025, Soheab_"
 author = "Soheab_"
-release = "0.2.0a"
+release = "0.1.3"
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
