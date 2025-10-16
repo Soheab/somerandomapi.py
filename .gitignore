@@ -194,3 +194,7 @@ test.py
 # venv
 venv/
 .venv
+
+# locks
+*.lock
+pylock*.lock
