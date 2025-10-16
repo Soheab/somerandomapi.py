@@ -36,10 +36,7 @@ class Image:
         return self
 
     def __str__(self) -> str:
-        return getattr(self, "_url", "") or repr(self)
-
-    def __repr__(self) -> str:
-        return f"<Image url={self.url!r}>"
+        return self.url or repr(self)
 
     @property
     def url(self) -> str:

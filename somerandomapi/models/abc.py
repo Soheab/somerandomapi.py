@@ -307,7 +307,7 @@ class BaseModel(metaclass=BaseModelMeta):
                 return super().__getattribute__(name)
 
     @recursive_repr()
-    def __repr___(self) -> str:
+    def __repr__(self) -> str:
         attributes = ", ".join(
             f"{key}={attribute.get_value()!r}"
             for key, attribute in self._attributes.items()
@@ -347,7 +347,7 @@ class BaseModel(metaclass=BaseModelMeta):
 
     @classmethod
     def _from_endpoint(cls: type[Self], endpoint: Any) -> Self:
-        if not hasattr(cls, "_endpoint__"):
+        if not hasattr(cls, "_endpoint"):
             msg = f"{cls.__name__} does not have an endpoint attribute."
             raise TypeError(msg)
 
