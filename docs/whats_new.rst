@@ -8,11 +8,23 @@ Changelog
 This page keeps a detailed, human-friendly rendering of what's new and changed
 in specific versions.
 
+v0.1.2
+-------
+
+- Hotfix for Python 3.14 compatibility. The wrapper now supports Python 3.11 to 3.14.
+- Other Miscellaneous fixes and improvements internally. For example, the type 
+  checking implementation was improved to handle more edge cases and be less error-prone.
+- Improve error messages for some exceptions, like missing keyword arguments or passing
+  positional arguments when only keyword arguments are accepted.
+
+**Full Changelog**: `GitHub Diff <https://github.com/Soheab/somerandomapi.py/compare/0.1.1...0.1.2>`_
 
 v0.1.1
 -------
 
 Just for PyPi because v0.1.0 already uploaded to PyPi but something went wrong with it.
+
+**Full Changelog**: `GitHub Diff <https://github.com/Soheab/somerandomapi.py/compare/0.1.0...0.1.1>`_
 
 v0.1.0
 -------
