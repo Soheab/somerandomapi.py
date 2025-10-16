@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from types import UnionType
 from typing import TYPE_CHECKING, Any, Literal, TypeVar, Union, get_args, get_origin  # pyright: ignore[reportDeprecated]
 import random
 import re
@@ -115,6 +116,9 @@ def _human_join(items: Iterable[str], sep: str = ", ", last_sep: str = " and ") 
         The joined string.
     """
     items = list(items)
+    if not items:
+        return ""
+
     if len(items) == 1:
         return items[0]
 
@@ -126,18 +130,18 @@ def _builin_types_from_str(_type: str) -> str | None:
         return _type
 
     if _type.startswith("ClassVar["):
-        _type = _type[9:-1]
+        _type = _type.removeprefix("ClassVar[").removesuffix("]")
     elif _type.startswith("typing."):
-        _type = _type[6:]
+        _type = _type.removeprefix("typing.")
     elif _type.startswith("typing_extensions."):
-        _type = _type[18:]
+        _type = _type.removeprefix("typing_extensions.")
     elif _type.startswith("collections.abc."):
-        _type = _type[17:]
+        _type = _type.removeprefix("collections.abc.")
 
     return _type
 
 
-def _get_literal_type(_type: type, gs: dict[str, Any], lc: dict[str, Any]) -> type | None:
+def _get_literal_type(_type: type | UnionType, gs: dict[str, Any], lc: dict[str, Any]) -> type | UnionType | None:
     if _type and isinstance(_type, str):
         _type = eval(_type, gs | globals(), lc | locals())  # noqa: S307
 
@@ -149,7 +153,7 @@ def _get_literal_type(_type: type, gs: dict[str, Any], lc: dict[str, Any]) -> ty
     return None
 
 
-def _check_literal_values(cls, field: Field, _type: type, values: tuple[Any, ...]) -> None:
+def _check_literal_values(cls, field: Field, _type: type | UnionType, values: tuple[Any, ...]) -> None:
     # this is here to prevent circular imports.
     from somerandomapi.errors import TypingError  # noqa: PLC0415
 
@@ -208,7 +212,7 @@ def _get_type(_type: type, gs: dict[str, Any], lc: dict[str, Any]) -> tuple[Any,
 def _check_types(
     cls,
     attribute: Any,
-    _type: type,
+    _type: type | UnionType,
     value: str | int | Any,
     gls: dict[str, Any],
     lcs: dict[str, Any],
@@ -216,28 +220,22 @@ def _check_types(
     # this is here to prevent circular imports.
     from somerandomapi.errors import TypingError  # noqa: PLC0415
 
+    EXPECTED_INSTANCE_MESSAGE = "expected instance of {expected_type}, not {field_value_type}."
+
     glbs = gls | globals()
     lcls = lcs | locals()
 
     if isinstance(_type, str):
-        if _type.startswith("ClassVar["):
-            _type = _type[9:-1]  # pyright: ignore[reportAssignmentType]
-        elif _type.startswith("typing."):
-            _type = _type[6:]  # pyright: ignore[reportAssignmentType]
-        elif _type.startswith("typing_extensions."):
-            _type = _type[18:]  # pyright: ignore[reportAssignmentType]
-        elif _type.startswith("collections.abc."):
-            _type = _type[17:]  # pyright: ignore[reportAssignmentType]
+        _type = _builin_types_from_str(_type)  # pyright: ignore[reportAssignmentType]
+        _type = eval(_type, glbs, lcs)  # pyright: ignore[reportArgumentType] # noqa: S307
 
-        _type = eval(_type, glbs, lcs)  # pyright: ignore[reportArgumentType]  # noqa: S307
-
-    if value is None:
-        return
+    if value is None and attribute.default is not None:
+        raise TypingError(cls, attribute, value, message=EXPECTED_INSTANCE_MESSAGE, expected_type=_type, cast_type=False)
 
     try:
         if isinstance(value, _type):
             return
-    except TypeError:  # noqa: S110
+    except TypeError:
         pass
 
     if literal := _get_literal_type(_type, glbs, lcls):
@@ -245,61 +243,56 @@ def _check_types(
         return
 
     origin = get_origin(_type)
-    if origin is Union:  # pyright: ignore[reportDeprecated]
-        if _is_optional(_type):
-            if value is None:
-                return
-            _type = next(x for x in get_args(_type) if x is not type(None))
-            _check_types(cls, attribute, _type, value, glbs, lcls)
+    if origin in (Union, UnionType):  # pyright: ignore[reportDeprecated]
+        args = get_args(_type)
+        if type(None) in args:  # Optional type
+            inner_type = next(t for t in args if t is not type(None))
+            _check_types(cls, attribute, inner_type, value, glbs, lcls)
             return
 
-        args = get_args(_type)
-        for arg in args:
-            if get_origin(arg) is Literal:
-                _check_literal_values(cls, attribute, arg, (value,))
-                return
-
+        # Union type
         for arg in args:
             try:
-                _check_types(cls, attribute, arg, value, glbs, lcls)
-            except TypingError:  # noqa: S110
-                pass
-            else:
-                return
+                if get_origin(arg) is Literal:
+                    _check_literal_values(cls, attribute, arg, (value,))
+                else:
+                    _check_types(cls, attribute, arg, value, glbs, lcls)
+                    return
+            except (TypingError, ValueError):  # noqa: S112
+                continue
 
         raise TypingError(
             cls,
             attribute,
             value,
-            message="expected instance of {valids}, not {field_value_type}.",
-            valids=", ".join(map(str, args)),
+            message=EXPECTED_INSTANCE_MESSAGE,
+            expected_type=_human_join(map(str, args), last_sep=" or "),
         )
 
-    if origin is list:
-        if not isinstance(value, list):
-            raise TypingError(cls, attribute, value, message="expected instance of list, not {field_value_type}.")
+    if origin in (list, tuple):
+        container_type = origin.__name__
+        if not isinstance(value, origin):
+            raise TypingError(cls, attribute, value, message=EXPECTED_INSTANCE_MESSAGE, expected_type=container_type)
 
-        for val in value:
-            _check_types(cls, attribute, get_args(_type)[0], val, glbs, lcls)
+        type_args = get_args(_type)
+        if not type_args:  # e.g., list without inner type
+            return
+
+        items_to_check = zip(type_args, value, strict=False) if origin is tuple else ((type_args[0], v) for v in value)
+        for arg, val in items_to_check:
+            _check_types(cls, attribute, arg, val, glbs, lcls)
 
     elif origin is dict:
         if not isinstance(value, dict):
-            raise TypingError(cls, attribute, value, message="expected instance of dict, not {field_value_type}.")
+            raise TypingError(cls, attribute, value, message=EXPECTED_INSTANCE_MESSAGE, expected_type="dict")
 
-        for val in value.values():
-            _check_types(cls, attribute, get_args(_type)[1], val, glbs, lcls)
-
-    elif origin is tuple:
-        if not isinstance(value, tuple):
-            raise TypingError(cls, attribute, value, message="expected instance of tuple, not {field_value_type}.")
-
-        for arg, val in zip(get_args(_type), value, strict=False):
-            _check_types(cls, attribute, arg, val, glbs, lcls)
+        key_type, value_type = get_args(_type)
+        for k, v in value.items():
+            _check_types(cls, attribute, key_type, k, glbs, lcls)
+            _check_types(cls, attribute, value_type, v, glbs, lcls)
 
     elif not isinstance(value, _type):
-        raise TypingError(cls, attribute, value, message="expected instance of {field_type}, not {field_value_type}.")
-
-    return
+        raise TypingError(cls, attribute, value, message=EXPECTED_INSTANCE_MESSAGE, expected_type=_type)
 
 
 ObjT = TypeVar("ObjT", bound="BaseModel")

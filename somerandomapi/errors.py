@@ -147,18 +147,22 @@ class TypingError(TypeError):
         value: Any,
         *,
         message: str | None = None,
+        cast_type: bool = True,
         **format_kwarg: Any,
     ) -> None:
         self.cls: BaseModel = cls
         self.attribute: Any = attribute
         message = message or "{field_name} must be of type {field_type} not {current_type}."
+
+        field_value_type = type(value) if cast_type else value
         message = message.format(
             field_name=f"'{attribute.name}'",
             class_name=f"{cls.__class__.__name__}()",
             field_type=_utils._get_type(attribute.type, {}, {})[0],
             current_type=type(value).__name__,
             field_value=value,
-            field_value_type=type(value).__name__,
+            field_value_type=repr(field_value_type),
             **format_kwarg,
         )
+        self.error_message: str = message
         super().__init__(f"Error in class: {cls.__class__.__name__}() and argument: '{attribute.name}': {message}")

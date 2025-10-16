@@ -12,7 +12,7 @@ class WelcomeFree(BaseImageModel):
 
     __endpoint__ = Base.WELCOME
 
-    template: Literal[1, 2, 3, 4, 5, 6, 7] = attribute(range=(1, 7))
+    template: Literal[1, 2, 3, 4, 5, 6, 7] = attribute(in_range=(1, 7))
     """The template from a predefined list. Choose a number between 1 and 7."""
     type: WelcomeType
     """The type."""
@@ -33,7 +33,7 @@ class WelcomeFree(BaseImageModel):
     
     Will be stripped if equal to 0
     """
-    font: Literal[0, 1, 2, 3, 4, 5, 6, 7] | None = attribute(default=None, range=(0, 7))
+    font: Literal[0, 1, 2, 3, 4, 5, 6, 7] | None = attribute(default=None, in_range=(0, 7))
     """The font from a predefined list. Choose a number between 0 and 7.
     
     .. versionchanged:: 0.1.0
