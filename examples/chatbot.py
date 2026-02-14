@@ -3,7 +3,6 @@ import asyncio
 # import the library
 import somerandomapi
 
-
 # create a client
 sr_api = somerandomapi.Client(key="your-api-key-here")
 

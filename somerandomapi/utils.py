@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-from types import UnionType
 from typing import TYPE_CHECKING, Any, Literal, TypeVar, Union, get_args, get_origin  # pyright: ignore[reportDeprecated]
 import random
 import re
+from types import UnionType
 
 if TYPE_CHECKING:
     from collections.abc import Iterable
@@ -232,13 +232,12 @@ def _check_types(
     if value is None:
         if attribute.default is not None:
             raise TypingError(cls, attribute, value, message=EXPECTED_INSTANCE_MESSAGE, expected_type=_type, cast_type=False)
-        else:
-            return
+        return
 
     try:
         if isinstance(value, _type):
             return
-    except TypeError:
+    except TypeError:  # noqa: S110
         pass
 
     if literal := _get_literal_type(_type, glbs, lcls):

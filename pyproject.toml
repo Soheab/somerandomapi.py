@@ -40,15 +40,17 @@ classifiers = [
     "Programming Language :: Python :: 3.14",
 ]
 
-[project.optional-dependencies]
+[dependency-groups]
 docs = [
     "Sphinx>=8.2,<9",
     "furo>=2024.8,<2025",
     "sphinx-autodoc-typehints>=3.2,<4",
     "enum-tools[sphinx]>=0.13,<0.14",
 ]
-dev = ["ruff==0.11.8"]
+dev = ["ruff==0.15.1"]
 
+[tool.uv.dependency-groups]
+docs = { requires-python = ">=3.13" }
 
 [tool.setuptools]
 packages = [
@@ -105,11 +107,12 @@ line-length = 125
 fix = true # default: false
 line-length = 125 # default: 88
 include = [
-    "somerandomapi",
-    "somerandomapi/types",
-    "somerandomapi/clients",
-    "somerandomapi/models",
-    "somerandomapi/internals",
+    "somerandomapi/*",
+    "somerandomapi/types/*",
+    "somerandomapi/clients/*",
+    "somerandomapi/models/*",
+    "somerandomapi/internals/*",
+    "examples/*",
 ]
 exclude = ["**/__pycache__", "_build", "build", "dist", "docs"]
 target-version = "py311"
@@ -189,6 +192,10 @@ ignore = [
     "TC003",    # nah it doesn't have to go into TYPE_CHECKING
     "TID252",   # it's fine.
     "PIE790",   # this is a common pattern 
+    "T201",
+    "ERA001",
+    "ASYNC250",
+    "A003",
 ]
 unfixable = [
     "E501", # line length handled in other ways by ruff format

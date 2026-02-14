@@ -70,7 +70,7 @@ class Endpoint:
                 for name, param in self.parameters.items()
                 if param.value is not None and param.is_body_parameter
             ],
-            key=lambda p: (p[1].index if p[1].index is not None else float("inf")),
+            key=lambda p: p[1].index if p[1].index is not None else float("inf"),
         )
         params = {name: param.value for name, param in self.parameters.items() if param.value is not None}
         for name, param in body_params:

@@ -12,7 +12,6 @@ from discord import app_commands
 # Import the somerandomapi.py library.
 import somerandomapi
 
-
 # Define a guild to test the commands in.
 TEST_GUILD = discord.Object(000000000000000000)
 
@@ -53,9 +52,7 @@ async def joke_command(interaction: discord.Interaction) -> None:
 @app_commands.describe(animal="The animal you want.")
 async def animal_command(interaction: discord.Interaction, animal: somerandomapi.Animal) -> None:
     data = await client.sr_api.animal.get_image_and_fact(animal)
-    await interaction.response.send_message(
-        f"{interaction.user} for you:" f"\n{data.image}" f"\n**Random fact:** {data.fact}"
-    )
+    await interaction.response.send_message(f"{interaction.user} for you:\n{data.image}\n**Random fact:** {data.fact}")
 
 
 # Run the client.
