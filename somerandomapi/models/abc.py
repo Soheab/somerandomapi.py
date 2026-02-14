@@ -323,7 +323,7 @@ class BaseModel(metaclass=BaseModelMeta):
         kwrgs = {
             attribute.name: data.get(attribute.data_name, data.get(attribute.name, attribute.default))
             for attribute in cls._attributes.values()
-            if not attribute.init
+            if attribute.init
         }
         return cls(**kwrgs)
 
