@@ -15,10 +15,12 @@ if TYPE_CHECKING:
 
 __all__ = ()
 
+
 class Attribute:
     def __init__(
         self,
         *,
+        data_name: str = _utils.NOVALUE,
         default: Any = _utils.NOVALUE,
         min_length: int = _utils.NOVALUE,
         max_length: int = _utils.NOVALUE,
@@ -26,13 +28,12 @@ class Attribute:
         in_range: tuple[int, int] = _utils.NOVALUE,
         init: bool = True,
         include_in_repr: bool = True,
-        data_name: str = _utils.NOVALUE,
         forced_type: type[Any] = _utils.NOVALUE,
         metadata: dict[str, Any] = _utils.NOVALUE,
     ) -> None:
         self._data_name: str = data_name
-
         self.name: str = ""
+
         self.default: Any = default
         self.min_length: int = min_length
         self.max_length: int = max_length
@@ -46,14 +47,18 @@ class Attribute:
         self._type: type[Any] = str
         self._value: Any = _utils.NOVALUE
 
-    @property
-    def data_name(self) -> str:
-        return self._data_name or self.name
+        self._check_types: bool = True
 
-    def _setname(self, name: str) -> None:
+    def __set_name__(self, _: type[Any], name: str) -> None:
         self.name = name
 
-    def set_value(self, value: Any, *, check_type: bool = False) -> None:
+    def __get__(self, instance: BaseModel | None, _: type[Any] | None) -> Any:
+        if instance is None:
+            return self
+
+        return instance._values.get(self.name, self.default)
+
+    def __set__(self, instance: BaseModel, value: Any) -> None:
         if value in (None, _utils.NOVALUE):
             self._value = value
             return
@@ -61,7 +66,7 @@ class Attribute:
         if self.forced_type is not _utils.NOVALUE:
             value = self.forced_type(value)
 
-        if check_type:
+        if self._check_types:
             _utils._check_types(
                 cls=self,
                 attribute=self,
@@ -104,22 +109,11 @@ class Attribute:
                 msg = f"{self.name!r} must be in the range {self.in_range[0]} to {self.in_range[1]}, got {value!r}"
                 raise ValueError(msg)
 
-        # Assign the validated value
-        self._value = value
+        instance._values[self.name] = value
 
-    def get_value(self) -> Any:
-        if self._value in (_utils.NOVALUE, None):
-            return self.default
-        return self._value if self.forced_type is _utils.NOVALUE else self.forced_type(self._value)
-
-    def _get_flatten_value(self) -> Any:
-        if self._value in (_utils.NOVALUE, None):
-            return self.default
-
-        if isinstance(self._value, BaseEnum):
-            return self._value.value
-
-        return str(self._value)
+    @property
+    def data_name(self) -> str:
+        return self._data_name or self.name
 
     @property
     def required(self) -> bool:
@@ -129,7 +123,7 @@ class Attribute:
     def type(self) -> type[Any]:
         return self._type if self.forced_type is _utils.NOVALUE else self.forced_type
 
-    @type.setter  # noqa: A003
+    @type.setter
     def type(self, value: type[Any]) -> None:
         if self.forced_type is not _utils.NOVALUE:
             return
@@ -168,7 +162,6 @@ def attribute(
 class BaseModelMeta(type):
     if TYPE_CHECKING:
         _attributes: dict[str, Attribute]
-        _init_attributes: dict[str, Attribute]
         _endpoint: Endpoint
 
         _frozen: bool
@@ -190,29 +183,23 @@ class BaseModelMeta(type):
 
         self = super().__new__(cls, name, bases, attrs)
         self._attributes = {}
-        self._init_attributes = {}
         self._frozen = options.get("frozen", False)
         self._validate_types = options.get("validate_types", True)
 
         annotations = inspect.get_annotations(self, eval_str=True)
-        for key, _type in annotations.items():
-            if key.startswith("_"):
-                continue
-
+        for key, type_ in annotations.items():
             value = getattr(self, key, _utils.NOVALUE)
             if isinstance(value, Attribute):
-                value._setname(key)
-                value.type = _type
+                value.type = type_
+                value._check_types = self._validate_types
                 self._attributes[key] = value
             else:
                 value = attribute(default=value)
-                value._setname(key)
-                value._type = _type
-                attrs[key] = value
+                value.__set_name__(self, key)
+                value._type = type_
+                value._check_types = self._validate_types
+                setattr(self, key, value)
                 self._attributes[key] = value
-
-            if value.init:
-                self._init_attributes[key] = value
 
         return self
 
@@ -221,60 +208,43 @@ class BaseModel(metaclass=BaseModelMeta):
     def __post_init__(self) -> None:
         self.validate_types()
 
-    if not TYPE_CHECKING:
+    def __init__(self, **kwargs: Any) -> None:
+        self._values: dict[str, Any] = {}
 
-        def __init__(self, *args: Any, **kwargs: Any) -> None:
-            if args:
-                first = self._attributes.get(next(iter(self._attributes)))
-                if first and first.init:
-                    msg = (
-                        f"{self.__class__.__name__}() only accepts keyword arguments. "
-                        f"Did you mean to pass {first.name!r} as a keyword argument?"
-                    )
-                else:
-                    msg = f"{self.__class__.__name__}() only accepts keyword arguments."
-                raise TypeError(msg)
-
-            self.__initialise(**kwargs)
-    else:
-        def __init__(self, **kwargs: Any) -> None: ...
-
-    def __initialise(self, **kwargs: Any) -> None:
-        if len(kwargs) > len(self._init_attributes):
+        attributes: dict[str, Attribute] = self._attributes
+        init_attributes: int = sum(1 for attr in attributes.values() if attr.init)
+        if len(kwargs) > init_attributes:
             msg = (
                 f"Too many keyword arguments passed to {self.__class__.__name__}. "
-                f"Expected {len(self._init_attributes)}, got {len(kwargs)}"
+                f"Expected {init_attributes}, got {len(kwargs)}"
             )
             raise TypeError(msg)
 
-        required_arguments = _utils._human_join([
-            repr(attr.name)
-            for attr in self._init_attributes.values()
-            if attr.init and attr.required and attr.name not in kwargs
-        ])
-        for name, attribute in self._init_attributes.items():
-            value = kwargs.pop(name, _utils.NOVALUE)
-            if value is _utils.NOVALUE:
-                if attribute.required:
-                    msg = (
-                        f"Missing required keyword argument(s) {required_arguments} "
-                        f"for {self.__class__.__name__}()"
-                    )
+        required_arguments = [
+            attr.name for attr in attributes.values() if attr.init and attr.required and attr.name not in kwargs
+        ]
+        if required_arguments:
+            joined = _utils._human_join(map(repr, required_arguments))
+            msg = f"Missing required keyword argument(s) {joined} for {self.__class__.__name__}"
+            raise TypeError(msg)
 
-                    raise TypeError(msg)
+        non_init_arguments = [attr.name for attr in attributes.values() if not attr.init and attr.name in kwargs]
+        if non_init_arguments:
+            joined = _utils._human_join(map(repr, non_init_arguments))
+            msg = f"{joined} cannot be passed as keyword arguments by you."
+            raise TypeError(msg)
 
-                attribute.set_value(attribute.default)
-            else:
-                if not attribute.init:
-                    msg = f"{name!r} cannot be passed as a keyword argument by you."
-                    raise TypeError(msg)
-                
-                #if value is None and attribute.default is not None:
-                #    msg = f"{name!r} cannot be None."
-                #    raise TypeError(msg)
+        for attr_name, attribute in attributes.items():
+            value = kwargs.pop(attr_name, _utils.NOVALUE)
+            self._values[attr_name] = value if value is not _utils.NOVALUE else attribute.default
 
-
-                attribute.set_value(value)
+        required_arguments = _utils._human_join(
+            [
+                repr(attr.name)
+                for attr in self._attributes.values()
+                if attr.init and attr.required and attr.name not in kwargs
+            ]
+        )
 
         if kwargs:
             first = next(iter(kwargs))
@@ -297,53 +267,19 @@ class BaseModel(metaclass=BaseModelMeta):
                     cls=self, attribute=attribute, _type=attribute.type, value=attribute._value, gls=globals(), lcs=locals()
                 )
 
-    if not TYPE_CHECKING:
-
-        def __getattribute__(self, name: str) -> Any:
-            attributes = object.__getattribute__(self, "_attributes")
-            try:
-                return attributes[name].get_value()
-            except KeyError:
-                return super().__getattribute__(name)
-
     @recursive_repr()
     def __repr__(self) -> str:
-        attributes = ", ".join(
-            f"{key}={attribute.get_value()!r}"
-            for key, attribute in self._attributes.items()
-            if attribute.init and attribute.include_in_repr
-        )
+        values: dict[str, Any] = {}
+        for key, attribute in self._attributes.items():
+            if attribute.init and attribute.include_in_repr:
+                values[key] = self._values.get(key, attribute.default)
+
+        attributes = ", ".join(f"{key}={value!r}" for key, value in values.items())
         return f"{self.__class__.__name__}({attributes})"
 
     def __delattr__(self, name: str) -> None:
         msg = f"Cannot delete attribute {name!r}"
         raise AttributeError(msg)
-
-    def __setattr__(self, name: str, value: Any) -> None:
-        if name.startswith("_"):
-            super().__setattr__(name, value)
-            return
-
-        try:
-            attribute = self._attributes[name]
-        except KeyError:
-            msg = f"{self.__class__.__name__} has no attribute {name!r}"
-            raise AttributeError(msg) from None
-        else:
-            if self._frozen:
-                msg = f"{self.__class__.__name__} is frozen and cannot be modified."
-                raise AttributeError(msg)
-
-            try:
-                attribute.set_value(value, check_type=self._validate_types)
-            except (TypeError, ValueError) as exc:
-                from ..errors import TypingError  # noqa: PLC0415
-
-                if not isinstance(exc, TypingError):
-                    raise
-
-                exc.args = (f"Error setting attribute {name!r} on {self.__class__.__name__}: {exc.error_message}",)
-                raise
 
     @classmethod
     def _from_endpoint(cls: type[Self], endpoint: Any) -> Self:
@@ -363,11 +299,24 @@ class BaseModel(metaclass=BaseModelMeta):
         return deepcopy(self)
 
     def to_dict(self) -> dict[str, Any]:
-        return {
-            attr.data_name: attr._get_flatten_value()
-            for attr in self._attributes.values()
-            if attr.get_value() is not _utils.NOVALUE
-        }
+        result = {}
+        for name, attr in self._attributes.items():
+            value = self._values.get(name, _utils.NOVALUE)
+            if value in (_utils.NOVALUE, None):
+                value = attr.default
+            else:
+                value = value if attr.forced_type is _utils.NOVALUE else attr.forced_type(value)
+
+            if value is not _utils.NOVALUE:
+                flattened = value
+                if flattened not in (_utils.NOVALUE, None):
+                    flattened = flattened.value if isinstance(flattened, BaseEnum) else str(flattened)
+                else:
+                    flattened = attr.default
+
+                if flattened is not _utils.NOVALUE:
+                    result[attr.data_name] = flattened
+        return result
 
     @classmethod
     def from_dict(cls: type[Self], data: dict[str, Any]) -> Self:
