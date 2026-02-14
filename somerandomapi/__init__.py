@@ -11,4 +11,3 @@ from .models import *
 
 __version__ = "0.2.0a"
 __author__ = "Soheab"
-__license__ = "MPL-2.0"
