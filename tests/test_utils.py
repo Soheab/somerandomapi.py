@@ -1,4 +1,4 @@
-from typing import Literal
+from typing import Literal, Union
 import asyncio
 from dataclasses import dataclass
 
@@ -65,7 +65,7 @@ def test_builtin_types_from_str() -> None:
 def test_literal_optional_and_get_type() -> None:
     lit = _get_literal_type(Literal["a", "b"], {}, {})
     assert lit is not None
-    assert _is_optional(int | None)
+    assert _is_optional(Union[int, None])
     assert _get_type(list[int], {}, {}) == (int,)
     assert _get_type(dict[str, int], {}, {}) == (int,)
     assert _get_type(tuple[int, str], {}, {}) == (int, str)

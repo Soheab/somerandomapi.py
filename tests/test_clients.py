@@ -31,7 +31,10 @@ from somerandomapi.models.youtube_comment import YoutubeComment
 
 
 def _run(coro):
-    return asyncio.run(coro)
+    async def _await_any(awaitable):
+        return await awaitable
+
+    return asyncio.run(_await_any(coro))
 
 
 class DummyHTTP:
