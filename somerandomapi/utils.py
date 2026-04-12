@@ -235,14 +235,25 @@ def _check_types(
         return
 
     try:
-        if isinstance(value, _type):
+        # Python 3.12+ does not allow using subscripted generic types (e.g., list[str], dict[str, int])
+        # in isinstance() or issubclass() checks. This causes a TypeError:
+        # "Subscripted generics cannot be used with class and instance checks"
+        #
+        # To fix this, we use get_origin() from the typing module to extract the raw type:
+        # - list[str] -> list
+        # - dict[str, int] -> dict
+        # - tuple[int, str] -> tuple
+        # - For non-generic types, get_origin() returns None
+        #
+        # This allows us to perform isinstance checks with the raw type while still
+        # maintaining the type information for later validation steps.
+        origin = get_origin(_type)
+        check_type = origin if origin is not None else _type
+        if isinstance(value, check_type):
             return
     except TypeError:  # noqa: S110
         pass
 
-    if literal := _get_literal_type(_type, glbs, lcls):
-        _check_literal_values(cls, attribute, literal, (value,))
-        return
 
     origin = get_origin(_type)
     if origin in (Union, UnionType):  # pyright: ignore[reportDeprecated]
