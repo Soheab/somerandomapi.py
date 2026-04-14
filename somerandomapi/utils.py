@@ -1,6 +1,15 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Literal, TypeVar, Union, get_args, get_origin  # pyright: ignore[reportDeprecated]
+from typing import (  # pyright: ignore[reportDeprecated]
+    TYPE_CHECKING,
+    Any,
+    ClassVar,
+    Literal,
+    TypeVar,
+    Union,
+    get_args,
+    get_origin,
+)
 import random
 import re
 from types import UnionType
@@ -181,7 +190,7 @@ def _check_literal_values(cls, field: Field, _type: type | UnionType, values: tu
 
 
 def _is_optional(_type: type) -> bool:
-    return get_origin(_type) is Union and type(None) in get_args(_type)  # pyright: ignore[reportDeprecated]
+    return get_origin(_type) is (Union, UnionType) and type(None) in get_args(_type)  # pyright: ignore[reportDeprecated]
 
 
 def _get_type(_type: type, gs: dict[str, Any], lc: dict[str, Any]) -> tuple[Any, ...]:
@@ -247,12 +256,11 @@ def _check_types(
     origin = get_origin(_type)
     if origin in (Union, UnionType):  # pyright: ignore[reportDeprecated]
         args = get_args(_type)
-        if type(None) in args:  # Optional type
+        if _is_optional(_type):  # pyright: ignore[reportArgumentType]
             inner_type = next(t for t in args if t is not type(None))
             _check_types(cls, attribute, inner_type, value, glbs, lcls)
             return
 
-        # Union type
         for arg in args:
             try:
                 if get_origin(arg) is Literal:
@@ -293,8 +301,11 @@ def _check_types(
             _check_types(cls, attribute, key_type, k, glbs, lcls)
             _check_types(cls, attribute, value_type, v, glbs, lcls)
 
-    elif not isinstance(value, _type):
-        raise TypingError(cls, attribute, value, message=EXPECTED_INSTANCE_MESSAGE, expected_type=_type)
+    try:
+        if not isinstance(value, _type):
+            raise TypingError(cls, attribute, value, message=EXPECTED_INSTANCE_MESSAGE, expected_type=_type)
+    except TypeError:  # noqa: S110
+        pass
 
 
 ObjT = TypeVar("ObjT", bound="BaseModel")
